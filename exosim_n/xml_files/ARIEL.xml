@@ -1,0 +1,313 @@
+<root>
+  <title> ARIEL Goal Instrument Model </title>
+  <type name="configuration"> </type>
+  <common>
+    <logbinres val="1000" units="" comment="Resoving power for common spectral binnin. A linear binning wavelength integral is estimated as wl_min/R"/>
+    <wl_min val="0.43" units="micron" comment="Shortest wavelength in simularion used for binning input spectra"/>
+    <wl_max val="16" units="micron" comment="Shortest wavelength in simularion used for binning input spectra"/>
+    <config_path val = "__path__" />
+    <output_directory val="__path__/output" comment="output directory to store sim images in FITs format or data processed results in pickle format" />
+  </common>
+  
+  <simulation>
+      <sim_diagnostics  val="0" comment=""/>
+      <sim_mode  val="1" comment=""/>
+      <sim_realisations  val="1" comment=""/>
+      <sim_output_type val = "1" units="" comment="1 = process through pipeline and store as pickle file, 2 = do not process through pipeline and store image stack as a FITS file"/>
+      <sim_full_ramps  val="0" comment=""/>
+      <sim_use_UTR_noise_correction  val="1" comment=""/>
+      <sim_pointing_psd val="flat" comment="flat or non-flat" />
+      <sim_adjust_rms val="0" units="" comment="activate to adjust RMS of desired jitter" />
+      <sim_pointing_rms val="4.0e-5" units="deg" comment="RMS of desired jitter if adjust_rms is True " />
+      <sim_use_systematic_model val="1" comment="" />
+      <sim_systematic_model_path val="__path__" comment="" />
+      <sim_use_wfe val="1" units="" />
+      <sim_pointing_model val="__path__/data/ariel/pointing_model_psd_final_bright.csv" comment="Jitter PSD in units of deg**2/Hz"/>
+      <sim_pointing_scan_throw val="-8" units="arcsec" comment="Positive value enables scan-mode simulation. The value defines the throw of the scan, in arcsec. The period of the scan is defined by the exposure time."/>
+      <sim_ape val="0.000277778" units="deg" comment="absolute pointing error"/>
+
+ 
+  </simulation>
+  
+  <observation>
+      <obs_type val = "1" units="" comment="1= primary transit, 2= secondary eclipse"/>
+      <obs_system val="Ariel"/>
+      <obs_channel val="AIRS CH1" />
+      <obs_use_sat val = "1" units="" comment="sets use of saturation time"/>
+      <obs_fw_percent val = "100" units="" comment=""/>
+      <obs_n_groups val = "2" units="" comment="sets number of ndrs per ramp"/>
+      <obs_frac_t14_pre_transit val="0.5" units="" comment="fraction of T14 for pre-transit observation" />
+      <obs_frac_t14_post_transit val="0.5"  units="" comment="fraction of T14 for post-transit observation" />
+  </observation>
+  
+  <pipeline>
+      <pipeline_binning val="R-bin" comment="either fixed-bin  or R-bin"/>
+      <pipeline_apply_mask val="1" units="" comment="apply an aperture mask or not"/>
+      <pipeline_ap_factor val="1.22" units="" comment="if mask applied, width in units of Flambda"/>
+      <pipeline_ap_shape val="rect"  comment="rect = rectangular mask where width = ApFactor*F*lambda(max), wav = wavelength dependent mask where width = ApFactor * F *lambda. rect is default"/>
+      <useAllen val="0" units="" comment="if result_type is 0, this selects use of Allen analysis"/>
+      <jitterMethod val="pointing-interp" comment=""/>
+      <fit_gamma val="0" units="" comment=""/>
+      <useSignal val="1" units="" comment=""/>
+      <pipeline_auto_ap val="1" units="" comment=""/>
+      <pipeline_bad_corr val="1" units="" comment=""/>
+      <pipeline_aperture_corr val="0" units="" comment=""/>
+  </pipeline>
+
+
+  <noise>
+    <EnableSpatialJitter val="False"/>
+    <EnableSpectralJitter val="False"/>
+    <EnableShotNoise val="False"/>
+    <EnableReadoutNoise val="False"/>
+    <EnableGainNoise val="False"/>
+    <EnableAPE val="False"/>
+    <ApplyPRNU val="1" units="" comment="If 1 uses a matrix of QE variations"/>
+    <ApplyRandomPRNU val="1" units="" comment="If 1 generates a random grid of QE variations"/>
+    <sim_prnu_rms val="3" units="" comment="in percent; if ApplyRandomPRNU is true, this is the rms variation applied"/>
+    <sim_flat_field_uncert val="0.5" units="" comment="in percent; if ApplyRandomPRNU is true, this is the uncertainty applied"/>
+    <sim_noise_source  val="0" units=""/>
+  </noise>
+  
+  <exosystem_params>
+      <star_spectrum_model val = "complex" comment="If 'simple', use a Planck function for the stellar sed. If 'model': use Phoenix"/>
+      <planet_name val = 'GJ 1214 b' />
+      <planet_use_database val = "1" />
+      <planet_spectrum_model val = "simple" comment="" />
+      <planet_spectrum_file val="__path__" comment="planet/star contrast ratio"/>
+      <star_spectrum_mag_norm  val="0" units="" comment="0 or 1: use a star spectrum normalized to given magnitude"/>
+  </exosystem_params>
+  
+  <background>
+      <EnableSource val="1" units=""/>
+      <EnableZodi val="0" units=""/>
+      <EnableEmission val="0" units=""/>
+      <EnableDC val="0" units=""/>
+      <EnableAll val="0" units="" comment="enables all target and background sources and DC"/>
+      <DisableAll val="0" units="" comment="disables all target and background sources and DC, overides enable all"/>
+  </background>
+  
+  <timeline>
+    <exposure_time val="20.0" units="s" comment="time for one exposure containg set of NDRs"/>
+    <multiaccum val="2" units="" comment="number of NDRs per exposure"/>
+    <frame_rate val="20" units="1/s" comment="frame rate in SPS"/>
+    <nGND val="1" units="" comment="duration of reset event in units of 1/frame_rate"/>
+    <nNDR0 val="1" units="" comment="Integration time of first NDR in units of 1/frame_rate"/>
+    <nRST val="1" units="" comment="Time lapse between last NDR and reset in units of 1/frame_rate"/>
+    <before_transit val="0.5" units="" comment="fraction of T14 for pre-transit observation"/>
+    <after_transit val="0.5" units="" comment="fraction of T14 for post-transit observation"/>
+    
+    <apply_lc val="1" units="" comment="apply a transit light curve; if false will do an OOT observation" />
+    <useLDC val="2" units="" comment="activate use of limb darkening code" />
+    <apply_lo_dens_LC  val="1" units="" comment="if 0 uses instantaneous light curve, if 1 uses intergrated light curve" />
+    <use_T14 val="0" units="" comment="if true uses T14 as the basis for the total observation time; if false uses obs_time or n_exp" />
+    <obs_time val="0" units="hr" comment="in hrs; total observing time if OOT chosen, and if > 0 overides n_exp; set to 0 to use n_exp" />
+    <n_exp val="1000" units="" comment="number of exposures that sets the total observation time if use_T14 is false" />
+    
+  </timeline>
+  
+  <common_optics>
+    <telescope_effective_diameter val="0.9" units="m"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_M1.csv" val="60" units="K" comment="M1"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_M2.csv" val="60" units="K" comment="M2"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_M3.csv" val="60" units="K" comment="M3"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_M4.csv" val="60" units="K" comment="M4"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_M5.csv" val="60" units="K" comment="M5"/>
+  </common_optics>
+  
+  <channel name="AIRS CH0" comment="AIRS CH0" type="spectrometer">
+    <is_spec val="True" comment="if True, channel is a spectrometer, otherwise a photometer (no spectral dispersion)"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D1T.csv" val="60" units="K" comment="D1T"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D2R.csv" val="60" units="K" comment="D2R"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_COM-M6.csv" val="60" units="K" comment="COM-M6"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_COM-M7CH0.csv" val="60" units="K" comment="COM-M7CH0"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_AIRS-CH0-L1.csv" val="60" units="K" comment="AIRS-CH0-L1"/>
+    <optical_surface type="prism" transmission="__path__/data/ariel/XLSX_AIRS-CH0-PR1.csv" val="60" units="K" comment="AIRS-CH0-PR1"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_AIRS-CH0-M1.csv" val="60" units="K" comment="AIRS-CH0-M1"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_AIRS-CH0-L2.csv" val="60" units="K" comment="AIRS-CH0-L2"/>
+    <slit_width val="14.88888889" units="" comment="Size of slit image in units of detector pixels 14.88888889"/>
+    <dispersion path="__path__/data/ariel/CH0_prism_dispersion_angle_v1.csv" val="3840" units="micron" comment="Dispersion law. Val is the reference pixel, i.e. the centre of the array. If Linear dispersion is defined, dispersion takes precedence"/>
+    <array_geometry val="64, 512" units="" comment="64 x 512 pixel count"/>
+    <wfno val="15.5" units="" comment="Image space f/#"/>
+    <wfno_y val="15.5" units="" comment="Image space f/#" />
+    <osf val="3" units="" comment="Oversample each detector pixel by this amount. Need to be changed"/>
+    <pix_offs val="1" units="" comment="Detector pixel center offset"/>
+    <qe val="__path__/data/ariel/qe_Ch0.csv" comment=""/>
+    <qe_rms_matrix_file val="None" comment="[Default 'None'] Path to CSV file containing matrix of QE of pixels."/>
+    <plate_scale_x val="0.000062" units="deg" comment="In degrees per pixel"/>
+    <plate_scale_y val="0.000062" units="deg" comment="In degrees per pixel"/>
+    <detector_pixel>
+      <pixel_size val="18" units="micron"/>
+      <Idc val="1" units="electron/s" comment="Detector dark current"/>
+      <sigma_ro val="14.14" units="electron" comment="Detector redout noise in e-rms"/>
+      <sigma_gn val="0.01" units="" comment="gain noise x100 to get percent"/>
+      <pixel_diffusion_length val="1.7" units="micron"/>
+      <full_well val="100000" units="" comment=""/>
+    </detector_pixel>
+    <flux_conversion val="__path__/data/ariel/AIRS CH0_flux_conversion.csv" comment=""/>
+
+  </channel>
+  <channel name="AIRS CH1" comment="AIRS CH1" type="spectrometer">
+    <is_spec val="True" comment="if True, channel is a spectrometer, otherwise a photometer (no spectral dispersion)"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D1T.csv" val="60" units="K" comment="D1T"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D2T.csv" val="60" units="K" comment="D2T"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_COM-M7CH1.csv" val="60" units="K" comment="COM-M7CH1"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_AIRS-CH1-L1.csv" val="60" units="K" comment="AIRS-CH1-L1"/>
+    <optical_surface type="prism" transmission="__path__/data/ariel/XLSX_AIRS-CH1-PR1.csv" val="60" units="K" comment="AIRS-CH1-PR1"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_AIRS-CH1-M1.csv" val="60" units="K" comment="AIRS-CH1-M1"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_AIRS-CH1-L2.csv" val="60" units="K" comment="AIRS-CH1-L2"/>
+    <slit_width val="10.911111" units="" comment="Size of slit image in units of detector pixels"/>
+    <dispersion path="__path__/data/ariel/CH1_prism_dispersion_angle_v1.csv" val="960" units="micron" comment="Dispersion law. Val is the reference pixel, i.e. the centre of the array"/>
+    <array_geometry val="64, 128" units="" comment="pixel count, original 64 x 128"/>
+    <array_read_time val= "1.5" units="s" />
+    <wfno val="7.5" units="" transmission="The image space f/#"/>
+    <wfno_y val="7.5" units="" transmission="The image space f/#"/>
+    <osf val="3" units="" comment="Oversample each detector pixel by this amount. Need to be changed"/>
+    <pix_offs val="1" units="" comment="Detector pixel center offset"/>
+    <qe val="__path__/data/ariel/qe_Ch1.csv" comment=""/>
+    <qe_rms_matrix_file val="None" comment="[Default 'None'] Path to CSV file containing matrix of QE of pixels."/>
+    <plate_scale_x val="0.00012445" units="deg" comment="In degrees per pixel"/>
+    <plate_scale_y val="0.00012445" units="deg" comment="In degrees per pixel"/>
+    <detector_pixel>
+      <pixel_size val="18" units="micron"/>
+      <Idc val="1.0" units="electron/s" comment="Detector dark current"/>
+      <sigma_ro val="17.68" units="electron" comment="Detector redout noise in e-rms"/>
+      <sigma_gn val="0.01" units="" comment="gain noise x100 to get percent"/>
+      <pixel_diffusion_length val="1.7" units="micron"/>
+      <full_well val="50000" units="" comment=""/>
+    </detector_pixel>
+    <pipeline_params>
+        <start_wav val="3.8" units="" />
+        <end_wav val="7.9" units="" />
+        <extra_pix val="0" units="" />
+        <wavrange_lo val="3.9" units="" />
+        <wavrange_hi val="7.8" units="" />
+        <pipeline_R val="30.0" units="" comment="R power if R-bin selected"/>
+        <pipeline_bin_size val="5" units="" comment="size of fixed-bins in pixel columns if fixed-bin selected"/>
+    </pipeline_params>
+    <flux_conversion val="__path__/data/ariel/AIRS CH1_flux_conversion.csv" comment=""/>
+
+    
+  </channel>
+  <channel name="NIR Spec" comment="NIR Spec" type="spectrometer">
+    <is_spec val="True" comment="if True, channel is a spectrometer, otherwise a photometer (no spectral dispersion)"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D1R.csv" val="60" units="K" comment="D1R"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M1.csv" val="60" units="K" comment="FGS-M1"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M2.csv" val="60" units="K" comment="FGS-M2"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D3T.csv" val="60" units="K" comment="D3T"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D5T.csv" val="60" units="K" comment="D5T"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_FGS-LS3.csv" val="60" units="K" comment="FGS-LS3"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_FGS-PR1.csv" val="60" units="K" comment="FGS-PR1"/>
+    <slit_width val="160" units="" comment="Size of slit image in units of detector pixels old was 42"/>
+    <dispersion path="__path__/data/ariel/NIRSpec_prism_dispersion_angle_v2.csv" val="480" units="micron" comment="Dispersion law. Val is the reference pixel, i.e. the centre of the array"/>
+    <array_geometry val="64, 160" units="" comment="pixel count 64, 160"/>
+    <wfno val="17.77" units="" comment="Image space f/# doubled for WFE" />
+    <wfno_y val="26.73" units="" comment="Image space f/#" />
+    <osf val="3" units="" comment="Oversample each detector pixel by this amount. Need to be changed"/>
+    <pix_offs val="1" units="" comment="Detector pixel center offset"/>
+    <qe val="__path__/data/ariel/qe_NS.csv" comment=""/>
+    <qe_rms_matrix_file val="None" comment="[Default 'None'] Path to CSV file containing matrix of QE of pixels."/>
+    <plate_scale_x val="0.00003305555556" units="deg" comment="In degrees per pixel"/>0.001617
+    <plate_scale_y val="0.00005194444444" units="deg" comment="In degrees per pixel"/>0.001617
+  <detector_pixel>
+      <pixel_size val="18" units="micron"/>
+      <Idc val="1.0" units="1/s" comment="Detector dark current"/>
+      <sigma_ro val="15.0" units="" comment="Detector redout noise in e-rms"/>
+      <sigma_gn val="0.01" units="" comment="gain noise x100 to get percent"/>
+      <pixel_diffusion_length val="1.7" units="micron"/>
+      <full_well val="100000" units="" comment=""/>
+    </detector_pixel>
+    <flux_conversion val="__path__/data/ariel/NIR Spec_flux_conversion.csv" comment=""/>
+  </channel>
+  
+  <channel name="FGS Red" comment="FGS Red" type="photometer">
+    <is_spec val="False" comment="if True, channel is a spectrometer, otherwise a photometer (no spectral dispersion)"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D1R.csv" val="60" units="K" comment="D1R"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M1.csv" val="60" units="K" comment="FGS-M1"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M2.csv" val="60" units="K" comment="FGS-M2"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D3T.csv" val="60" units="K" comment="D3T"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D5R.csv" val="60" units="K" comment="D5R"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M4.csv" val="60" units="K" comment="FGS-M4"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M5.csv" val="60" units="K" comment="FGS-M5"/>
+    <array_geometry val="90, 90" units="" comment="pixel count"/>
+    <wfno val="25" units="" comment="Image space f/#" />
+    <wfno_y val="37.59" units="" comment="Image space f/#37.59" />
+    <osf val="3" units="" comment="Oversample each detector pixel by this amount. Need to be changed"/>
+    <pix_offs val="1" units="" comment="Detector pixel center offset"/>
+    <qe val="__path__/data/ariel/qe_F2.csv" comment=""/>
+    <qe_rms_matrix_file val="None" comment="[Default 'None'] Path to CSV file containing matrix of QE of pixels."/>
+    <plate_scale_x val="0.00003750269204" units="deg" comment="In degrees per pixel"/>
+    <plate_scale_y val="0.00003750269204" units="deg" comment="In degrees per pixel"/>
+    <detector_pixel>
+      <pixel_size val="18" units="micron"/>
+      <Idc val="1.0" units="1/s" comment="Detector dark current"/>
+      <sigma_ro val="15.0" units="" comment="Detector redout noise in e-rms"/>
+      <sigma_gn val="0.01" units="" comment="gain noise x100 to get percent"/>
+      <pixel_diffusion_length val="1.7" units="micron"/>
+      <full_well val="100000" units="" comment=""/>
+    </detector_pixel>
+    <flux_conversion val="__path__/data/ariel/FGS Red_flux_conversion.csv" comment=""/>
+
+    
+  </channel>
+  
+  
+  <channel name="FGS Prime" comment="FGS Prime" type="photometer">
+    <is_spec val="False" comment="if True, channel is a spectrometer, otherwise a photometer (no spectral dispersion)"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D1R.csv" val="60" units="K" comment="D1R"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M1.csv" val="60" units="K" comment="FGS-M1"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M2.csv" val="60" units="K" comment="FGS-M2"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D3R.csv" val="60" units="K" comment="D3R"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D4T.csv" val="60" units="K" comment="D4T"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_FGS-L2.csv" val="60" units="K" comment="FGS-L2"/>
+    <array_geometry val="80, 80" units="" comment="pixel count"/>
+    <wfno val="19.75" units="" comment="Image space f/#" />
+    <wfno_y val="29.7" units="" comment="Image space f/#" />
+    <osf val="3" units="" comment="Oversample each detector pixel by this amount. Need to be changed"/>
+    <pix_offs val="1" units="" comment="Detector pixel center offset"/>
+    <qe val="__path__/data/ariel/qe_F1.csv" comment=""/>
+    <qe_rms_matrix_file val="None" comment="[Default 'None'] Path to CSV file containing matrix of QE of pixels."/>
+    <plate_scale_x val="0.00004747176208" units="deg" comment="In degrees per pixel"/>
+    <plate_scale_y val="0.00004747176208" units="deg" comment="In degrees per pixel"/>
+    <detector_pixel>
+      <pixel_size val="18" units="micron"/>
+      <Idc val="1.0" units="1/s" comment="Detector dark current"/>
+      <sigma_ro val="15.0" units="" comment="Detector redout noise in e-rms"/>
+      <pixel_diffusion_length val="1.7" units="micron"/>
+      <full_well val="100000" units="" comment=""/>
+    </detector_pixel>
+    <flux_conversion val="__path__/data/ariel/FGS Prime_flux_conversion.csv" comment=""/>
+  </channel>
+  
+  
+  <channel name="NIR Phot" comment="NIR Phot" type="photometer">
+    <is_spec val="False" comment="if True, channel is a spectrometer, otherwise a photometer (no spectral dispersion)"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D1R.csv" val="60" units="K" comment="D1R"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M1.csv" val="60" units="K" comment="FGS-M1"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M2.csv" val="60" units="K" comment="FGS-M2"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D3R.csv" val="60" units="K" comment="D3R"/>
+    <optical_surface type="dichroic" transmission="__path__/data/ariel/XLSX_D4R.csv" val="60" units="K" comment="D4R"/>
+    <optical_surface type="mirror" transmission="__path__/data/ariel/XLSX_FGS-M3.csv" val="60" units="K" comment="FGS-M3"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_FGS-LP1.csv" val="60" units="K" comment="FGS-LP1"/>
+    <optical_surface type="lens" transmission="__path__/data/ariel/XLSX_FGS-L1.csv" val="60" units="K" comment="FGS-L1"/>
+    <array_geometry val="88, 88" units="" comment="pixel count"/>
+    <wfno val="32.13" units="" comment="Image space f/#" />
+    <wfno_y val="48.31" units="" comment="Image space f/#" />
+    <osf val="3" units="" comment="Oversample each detector pixel by this amount. Need to be changed"/>
+    <pix_offs val="1" units="" comment="Detector pixel center offset"/>
+    <qe val="__path__/data/ariel/qe_VP.csv" comment=""/>
+    <qe_rms_matrix_file val="None" comment="[Default 'None'] Path to CSV file containing matrix of QE of pixels."/>
+    <plate_scale_x val="0.00002918043265" units="deg" comment="In degrees per pixel"/>
+    <plate_scale_y val="0.00002918043265" units="deg" comment="In degrees per pixel"/>
+    <detector_pixel>
+      <pixel_size val="18" units="micron"/>
+      <Idc val="1.0" units="1/s" comment="Detector dark current"/>
+      <sigma_ro val="15.0" units="" comment="Detector redout noise in e-rms"/>
+      <sigma_gn val="0.01" units="" comment="gain noise x100 to get percent"/>
+      <pixel_diffusion_length val="1.7" units="micron"/>
+      <full_well val="100000" units="" comment=""/>
+    </detector_pixel>
+    <flux_conversion val="__path__/data/ariel/NIR Phot_flux_conversion.csv" comment=""/>
+  
+  </channel>
+</root>
