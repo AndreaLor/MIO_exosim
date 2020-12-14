@@ -2,9 +2,7 @@
 .pyc
 build/
 dist/
-archive/
 exosim.egg-info
-output/
 __pycache__/
 
 
