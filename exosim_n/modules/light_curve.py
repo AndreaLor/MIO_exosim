@@ -1,8 +1,6 @@
 """
-JexoSim 
-2.0
+ExoSim-N
 Light curve module
-v1.1
 
 """
 

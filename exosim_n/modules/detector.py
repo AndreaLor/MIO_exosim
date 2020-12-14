@@ -336,8 +336,8 @@ def sanity_check(opt):
     if opt.diagnostics ==1:
         plt.figure('sanity check 1 - check focal plane signal')
         plt.plot(wl,n, 'b^', label='BB check')
-        plt.plot(wl,n2, 'r+', label='Phoenix check')  # not convolved with PSF unlike JexoSim, so peak may be higher
-        plt.plot(wl, jex_sig, 'gx', label='JexoSim')
+        plt.plot(wl,n2, 'r+', label='Phoenix check')  # not convolved with PSF so peak may be higher
+        plt.plot(wl, jex_sig, 'gx', label='ExoSim')
         plt.ylabel('e/s/pixel col'); plt.xlabel('pixel col wavelength (microns)')
         plt.legend(loc='best')
         

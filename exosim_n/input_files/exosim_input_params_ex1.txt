@@ -69,8 +69,8 @@ obs_fw_percent    80
 # Enter percentage of detector full well capacity before a pixel is considered saturated
 
 obs_n_groups     25
-# Enter number of groups per integration (only applied if use_sat = 0). JexoSim currently assumes 1 frame per group.  
- 
+# Enter number of groups per integration (only applied if use_sat = 0).
+
 obs_n_reset_groups     default
 # Enter default for default number of reset groups per integration cycle: 0 for MIRI, 1 for NIR instruments.  Override by placing an integer number to set the number of reset groups.
 

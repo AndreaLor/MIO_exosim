@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
-name = 'jexosim'
-description = 'Time-domain simulator for JWST transit spectroscopy'
+name = 'ExoSim-N'
+description = 'Exoplanet Observation Simulator - New'
 url = 'https://github.com/subisarkar/JexoSim/'
 install_requires = ['pytransit==2.1.1', 'scipy==1.5.2', 'astropy==4.0.1', 'pandas==1.1.1', 'emcee==3.0.2', 'seaborn==0.10.1', 'uncertainties==3.1.4', 'tqdm==4.48.2', 'lxml==4.5.2']
 entry_point = '__run__:console'

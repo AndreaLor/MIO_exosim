@@ -1,8 +1,6 @@
 """
-JexoSim
-2.0
+ExoSim-N
 Backgrounds modules
-v1.0
 
 """
 

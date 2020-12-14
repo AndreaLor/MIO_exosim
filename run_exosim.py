@@ -1,4 +1,4 @@
-from jexosim.run_files import run_jexosim
+from exosim_n.run_files import run_exosim
 import sys
 import numpy as np
 

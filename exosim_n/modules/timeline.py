@@ -1,8 +1,6 @@
 """
-JexoSim 
-2.0
+ExoSim-N
 Timeline module
-v1.0
 
 """
 import numpy as np

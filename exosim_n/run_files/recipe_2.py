@@ -161,7 +161,7 @@ class recipe_2(object):
                            opt.pipeline.pipeline_auto_ap.val = 0
                            opt.use_external_jitter = 1 # uses the jitter timeline from the first realization
 
-                           opt = self.run_JexoSimB(opt)
+                           opt = self.run_exosim_n_B(opt)
                            opt  = self.run_pipeline_stage_1(opt)
                        
                                   

@@ -804,76 +804,7 @@ def PixelResponseFunction(opt, psf_shape, osf, delta, lx = 1.7*u.um, ipd = 0.0*u
 #  # Normalise the kernel such that the pixel has QE=1
   kernel *= osf**2/kernel.sum()
   
- 
-  
-#==============================================================================
-# Below is for images only  
-# 
-#   
-#  from mpl_toolkits.mplot3d import Axes3D
-#  import matplotlib.pyplot as plt
-#  from matplotlib import cm
-#  from matplotlib.ticker import LinearLocator, FormatStrFormatter
-#
-#
-#  fig = plt.figure('IPRF')
-#  ax = fig.gca(projection='3d')
-# 
-#  surf = ax.plot_surface(xx/18e-6, yy/18e-6, kernel, cmap=cm.coolwarm,
-#                       linewidth=0, antialiased=False)
-#                       
-#  ax.set_xlim(-1.5, 1.5)
-#  ax.set_ylim(-1.5, 1.5)
-#  ax.set_zlim(0, 1.0)
-#  ax.set_xlabel('X axis (pixels)')
-#  ax.set_ylabel('Y axis (pixels)')
-#  ax.set_zlabel('Relative count per pixel')                     
-# 
-#  fig.colorbar(surf, shrink=0.5, aspect=5)
-#
-#  plt.show()  
-#  
-#  plt.figure('X-section through IPRF')
-#  X,Y = np.unravel_index(kernel.argmax(), kernel.shape)
-#  
-#  import pandas as pd
-#  qq = np.array(pd.read_csv('/Users/user1/Desktop/JWST_IRPRF_Hardy.csv'))
-#  qq = qq[qq[:,0].argsort()]
-# 
-#  xx0 = np.linspace(3,8,1000)
-# 
-#  yy0  = np.interp(xx0,qq[:,0],qq[:,1])
-#  idx = np.argwhere(yy0>=0)
-#  yy0= yy0[idx]
-#  xx0=xx0[idx]
-#  idx = np.argmax(yy0)
-#  xx0 =xx0-xx0[idx]
-#  yy0 = yy0/yy0.max()
-#  plt.plot(xx0+0.012,yy0, 'r-', linewidth=2, label='Hardy et al. 2014')
-#  plt.plot(xx[0]/18e-6, kernel[X]/kernel[X].max(), 'b--',linewidth=2, label = 'JexoSim')
-#  plt.grid(True)
-#  plt.xlabel('Distance (pixels)')
-#  plt.ylabel('Relative response')
-#  
-#  ax = plt.gca() 
-#
-#
-#  legend = ax.legend(loc='upper right', shadow=True)
-#  frame = legend.get_frame()
-#  frame.set_facecolor('0.90')
-#  for label in legend.get_texts():
-##    label.set_fontsize('medium')
-#    label.set_fontsize(22)
-#  for label in legend.get_lines():
-#    label.set_linewidth(1.5)  # the legend line width
-#  for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
-#             ax.get_xticklabels() + ax.get_yticklabels()):
-#    item.set_fontsize(22)
-#    
-#  xxx
- 
-  
-#==============================================================================
+
  
   kernel = np.roll(kernel, -xc, axis=1)
   kernel = np.roll(kernel, -yc, axis=0)

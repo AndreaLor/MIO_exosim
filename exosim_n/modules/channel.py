@@ -48,10 +48,7 @@ def run(opt):
       
       opt.PCE = PCE.sed
       opt.TotTrans = TotTrans.sed
-      
-      # np.save('/Users/user1/Documents/Pandexo_vs_JexoSim/JexoSim_PCE_%s.npy'%(opt.channel.name), opt.PCE.value)
-      # np.save('/Users/user1/Documents/Pandexo_vs_JexoSim/JexoSim_PCE_wav_%s.npy'%(opt.channel.name), opt.x_wav_osr.value)
-
+    
       exosim_plot('PCE', opt.diagnostics, xdata = PCE.wl, ydata = PCE.sed)    
       exosim_plot('Total transmission not including QE', opt.diagnostics, xdata = TotTrans.wl, ydata = TotTrans.sed)
       opt.qe_spec = qe

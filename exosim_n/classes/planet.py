@@ -5,7 +5,7 @@ Planet class
 """
 
 import numpy as np
-from jexosim.classes import sed
+from exosim_n.classes import sed
 from astropy import units as u
 from astropy import constants as const
 from exosim_n.lib.exolib import exosim_msg, planck
