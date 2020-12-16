@@ -1,1 +1,1 @@
-ExoSim-N archive folder
+ExoSim_N archive folder

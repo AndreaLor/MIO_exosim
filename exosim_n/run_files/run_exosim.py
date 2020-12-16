@@ -12,7 +12,6 @@ import sys, time, os
 import exosim_n 
 from exosim_n.lib.exolib import exosim_msg
 import matplotlib.pyplot as plt
-from exodata import astroquantities as aq
 import exosim_n.EDaRP as EDaRP
 import gc
 import os
@@ -20,7 +19,7 @@ plt.style.use('classic')
 
 def run(params_file):
   
-  exosim_msg('ExoSim-N is running!\n', 1) 
+  exosim_msg('ExoSim_N is running!\n', 1) 
   exosim_msg('User-defined input parameter file: %s\n  '%(params_file), 1)  
   exosim_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
   exosim_msg('Reading instrument file ... \n', 1)
@@ -93,7 +92,7 @@ def run(params_file):
 
 if __name__ == "__main__":     
     
-     run('exosim_input_params_ex2.txt')
+     run('exosim_input_params_ex1.txt')
  
     
     

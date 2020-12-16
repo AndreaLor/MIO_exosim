@@ -1,5 +1,5 @@
 """
-ExoSim-N
+ExoSim_N
 Channel module
 
 """

@@ -1,5 +1,5 @@
 '''
-ExoSim-N
+ExoSim_N
 Recipe 3 - OOT simulation returning a noise budget
  
 '''

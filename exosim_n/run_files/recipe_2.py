@@ -1,5 +1,5 @@
 '''
-ExoSim-N
+ExoSim_N
 2.0
 Recipe 2 :
 Monte Carlo full transit simulation returning transit depths and noise on transit dept per spectral bin

@@ -1,3 +1,3 @@
 """
-ExoSim-N
+ExoSim_N
 """

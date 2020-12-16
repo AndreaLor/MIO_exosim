@@ -1,6 +1,5 @@
 '''
-exosim_n 
-2.0
+ExoSim_N
 Recipe 1 - OOT simulation returning stellar signal and noise per spectral bin with Allan analysis
 
 '''
@@ -16,22 +15,18 @@ import numpy as np
 class recipe_1(object):
     def __init__(self, opt):
         
-        output_directory = '/Users/user1/Desktop/ExoSim-N/output' 
+        output_directory = opt.common.output_directory.val
 
 
         filename =""
         
         self.results_dict ={}
+        
+        opt.no_real = opt.simulation.sim_realisations.val
+        
         self.results_dict['simulation_mode'] = opt.sim_mode
-        self.results_dict['simulation_realisations'] = 1
-        self.results_dict['ch'] =  'AIRS CH1'
-        
-        
-        opt.no_real = 1
-        
-        # self.results_dict['simulation_mode'] = opt.sim_mode
-        # self.results_dict['simulation_realisations'] = opt.simulation.sim_realisations.val
-        # self.results_dict['ch'] =  opt.observation.obs_channel.val 
+        self.results_dict['simulation_realisations'] = opt.simulation.sim_realisations.val
+        self.results_dict['ch'] =  opt.observation.obs_channel.val
         
         self.noise_dict ={}    
    
