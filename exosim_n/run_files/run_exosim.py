@@ -4,7 +4,8 @@ from exosim_n.classes.params import Params
 from exosim_n.generate.gen_planet_xml_file import make_planet_xml_file
 from exosim_n.run_files.recipe_1 import recipe_1
 from exosim_n.run_files.recipe_2 import recipe_2
-
+from exosim_n.run_files.recipe_3 import recipe_3
+from exosim_n.run_files  import results
 
 import numpy           as     np
 import sys, time, os
@@ -55,7 +56,7 @@ def run(params_file):
   opt.system = opt.observation.obs_system.val
   opt.params_file_path = params_file 
 
-  
+ 
   # select channel
   for ch in opt.channel:
       if ch.name == opt.observation.obs_channel.val:       
@@ -84,13 +85,16 @@ def run(params_file):
           recipe  = recipe_1(opt)
   if opt.sim_mode == 2:
           recipe  = recipe_2(opt)
-
+  if opt.sim_mode == 3:
+          recipe  = recipe_3(opt) 
+          
+  results_file = recipe.filename
+  results.run(results_file)
 
 if __name__ == "__main__":     
     
-    run('exosim_input_params_ex1.txt')
-    
-    
+     run('exosim_input_params_ex2.txt')
+ 
     
     
                       #     opt.apply_lo_dens_LC = True

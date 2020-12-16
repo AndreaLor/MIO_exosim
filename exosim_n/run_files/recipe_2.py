@@ -37,7 +37,7 @@ class recipe_2(object):
         opt.pipeline.fit_gamma.val  =0 #keep zero for uncert on p
         
         noise_type = int(opt.noise.sim_noise_source.val)
-        noise_type = 0
+      
       
         nb_dict = {'rn'            :[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
                 'sn'               :[1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],

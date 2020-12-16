@@ -34,6 +34,7 @@ def zodical_light(opt):
     transmission = Sed(wl, np.ones(wl.size)*u.dimensionless_unscaled)
     
     
+    
     zodi = [sed, transmission]
 
     return zodi
@@ -88,7 +89,9 @@ def emission_from_file(opt):
   for op in opt.common_optics.optical_surface:
       dtmp=np.loadtxt(op.transmission.replace('__path__', opt.__path__), delimiter=',')
       tr = Sed(dtmp[:,0]*u.um,dtmp[:,1]*u.dimensionless_unscaled)
+      
       tr.rebin(opt.x_wav_osr)
+ 
       TR =np.ones(len(opt.x_wav_osr))
   
       TR =TR*tr.sed
@@ -103,8 +106,10 @@ def emission_from_file(opt):
     
       em = Sed(dtmp[:,0]*u.um,dtmp[:,2]*u.dimensionless_unscaled)
       em.rebin(opt.x_wav_osr)
-
+      
+      
       exolib.sed_propagation(instrument_emission, tr, emissivity=em, temperature=op())
+      
       instrument_transmission.sed = instrument_transmission.sed*tr.sed
 
   for op in opt.channel.optical_surface:
@@ -140,17 +145,14 @@ def run(opt):
       exosim_msg('Running backgrounds module ...\n ', opt.diagnostics)
       
       opt.zodi, zodi_transmission  = zodical_light(opt)
-      
+         
 
       # opt.emission = optical_emission(opt)
       opt.emission = emission_from_file(opt)
-      
-
+    
            
       exolib.sed_propagation(opt.star.sed, zodi_transmission)
       
-    
- 
 
       ch = opt.channel
 
@@ -159,17 +161,21 @@ def run(opt):
 
       opt.zodi.sed *= Apix*Omega_pix*opt.Re *u.electron/u.W/u.s 
       opt.emission.sed *= Apix*Omega_pix*opt.Re *u.electron/u.W/u.s 
-
+      
       exolib.sed_propagation(opt.zodi, opt.total_transmission)
       
-      opt.zodi.rebin(opt.x_wav_osr)
-      opt.emission.rebin(opt.x_wav_osr)   
+ 
+      exosim_plot('zodi spectrum', opt.diagnostics, xdata = opt.zodi.wl, ydata=opt.zodi.sed)
+      exosim_plot('emission spectrum', opt.diagnostics, xdata = opt.emission.wl, ydata=opt.emission.sed)
 
       opt.zodi.sed     *= opt.d_x_wav_osr 
       opt.emission.sed *= opt.d_x_wav_osr
       
       zodi_photons_sed = copy.deepcopy(opt.zodi.sed)
       emission_photons_sed = copy.deepcopy(opt.emission.sed)
+      
+       
+
       
       if ch.slit_width.val == 0:
           slit_size =  opt.fpn[1]*2  # to ensure all wavelengths convolved onto all pixels in slitless case
@@ -183,13 +189,13 @@ def run(opt):
       opt.emission.sed = scipy.signal.convolve(opt.emission.sed.value, 
 		      np.ones(np.int(slit_size*ch.osf())), 
 		      'same') * opt.emission.sed.unit
+      
+      opt.zodi.sed[np.isnan(opt.zodi.sed)] = 0
+      opt.emission.sed[np.isnan(opt.emission.sed)] = 0
 
       opt.zodi_sed_original = copy.deepcopy(opt.zodi.sed)
       opt.emission_sed_original = copy.deepcopy(opt.emission.sed)
       
-      # exosim_plot('zodi spectrum', opt.diagnostics, xdata = opt.zodi.wl, ydata=opt.zodi.sed)
-      # exosim_plot('emission spectrum', opt.diagnostics, xdata = opt.emission.wl, ydata=opt.emission.sed)
-                
 
     
       return opt

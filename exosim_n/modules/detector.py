@@ -9,6 +9,7 @@ from exosim_n.lib import exolib
 from exosim_n.lib.exolib import exosim_msg, exosim_plot, planck
 import numpy           as np
 from astropy import units as u
+from astropy import constants as const
 import matplotlib.pyplot as plt
 import copy, os
 from scipy import interpolate
@@ -27,7 +28,7 @@ def run(opt):
             opt.psf_type = 'airy'
       elif opt.simulation.sim_use_wfe.val  == 1: 
             if opt.system == 'Ariel':
-                zfile = '%s/../archive/PSF/%s/%s_psf_stack.fits'%(opt.__path__,opt.system,opt.channel.name)
+                zfile = '%s/data/%s/PSF/%s_psf_stack.fits'%(opt.__path__,opt.system,opt.channel.name)
                 if opt.channel.is_spec.val == False:
                     psf = exolib.Psf_photometer(zfile, opt.fp_delta, opt.channel.osf(), opt.fpn, opt.x_wav_osr)   
                 else:
@@ -156,23 +157,26 @@ def run(opt):
       # Fix units
       opt.fp = opt.fp*opt.star.sed.sed.unit 
       opt.fp_signal = opt.fp_signal*opt.star.sed.sed.unit  
-
-
+ 
 #==============================================================================
 #     Find saturation time
 #==============================================================================
     ## Find count rate with diffuse radiation
       FPCOPY = copy.deepcopy(opt.fp_signal)
-      FPCOUNT_no_bkg = FPCOPY[1::3,1::3] 
+      FPCOUNT_no_bkg = 1*FPCOPY[1::3,1::3].value
+
       FPCOPY += opt.zodi.sed  + opt.emission.sed 
+
       FPCOUNT = FPCOPY[1::3,1::3] 
 
+
       FPCOUNT += opt.channel.detector_pixel.Idc.val   
-      FPCOUNT = FPCOUNT.value
-      FPCOUNT_no_bkg = FPCOUNT_no_bkg.value
       
-            
+      FPCOUNT = FPCOUNT.value
+         
       exosim_msg ("check 5 - %s"%(FPCOUNT.max()), opt.diagnostics)
+      exosim_msg ("check 5a - %s"%(FPCOUNT_no_bkg.max()), opt.diagnostics)
+ 
 
       FW = opt.channel.detector_pixel.full_well.val 
       
@@ -202,27 +206,27 @@ def run(opt):
       opt.dead_time = (opt.timeline.nGND.val+ opt.timeline.nRST.val)* opt.t_g
       opt.zero_time = opt.timeline.nNDR0.val* opt.t_g 
     
-    
+      # n_full_ndrs are the number of ndrs not including the zeroth ndr
       if opt.observation.obs_use_sat.val == 1: 
           exosim_msg('Using saturation time to set n_groups', opt.diagnostics)
-          n_groups = int(opt.sat_time/opt.t_g) # does not include reset group (assume this is after final read so saturation in this period does not affect read counts)
-          if n_groups <2:
-              n_groups=2
+          n_full_ndrs = int((opt.sat_time-opt.zero_time)/opt.t_g) # does not include reset group (assume this is after final read so saturation in this period does not affect read counts)
+          if n_full_ndrs <1:
+              n_full_ndrs=1
       else:
           exosim_msg('Using user-defined n_groups', opt.diagnostics)
-          n_groups = opt.observation.obs_n_groups.val
+          n_full_ndrs = opt.observation.obs_n_groups.val - 1
           
       exosim_msg('t_f %s'%(opt.t_f), opt.diagnostics)
       exosim_msg('dead time %s'%(opt.dead_time), opt.diagnostics)
       exosim_msg('zero time %s'%(opt.zero_time), opt.diagnostics)
-      exosim_msg('maccum %s'%(n_groups), opt.diagnostics)        
+      exosim_msg('maccum %s'%(n_full_ndrs + 1), opt.diagnostics)        
       
       # t_sim is not currently used, and by default is set to the same value as t_f
       opt.t_sim = opt.t_f             
-      opt.t_int =  (n_groups-1)*opt.t_g   
-      opt.t_cycle = n_groups*opt.t_g+ opt.dead_time
+      opt.t_int =  (n_full_ndrs)*opt.t_g # this is the 'cds time': i.e. misses the zeroth ndr time
+      opt.t_cycle = opt.t_int + opt.dead_time + opt.zero_time  
         
-      if n_groups*opt.t_g > opt.sat_time:
+      if opt.t_cycle > opt.sat_time:
           exosim_msg ("\n****** Warning!!!!!!!!!  : some pixels will exceed saturation limit ******\n", opt.diagnostics  )
           opt.sat_flag = 1
           # sys.exit()
@@ -237,10 +241,10 @@ def run(opt):
       if opt.simulation.sim_full_ramps.val == 0:
           exosim_msg ("Approximating ramps with corrected CDS method, so only 2 NDRs simulated", 1)
           opt.effective_multiaccum = 2 # effective multiaccum is what is implemented in sim
-          opt.projected_multiaccum = int(n_groups)
+          opt.projected_multiaccum = int(n_full_ndrs+1)
       else:
-          opt.effective_multiaccum = int(n_groups)
-          opt.projected_multiaccum = int(n_groups)
+          opt.effective_multiaccum = int(n_full_ndrs+1)
+          opt.projected_multiaccum = int(n_full_ndrs+1)
           
       exosim_msg ("projected multiaccum: %s"%(opt.projected_multiaccum), opt.diagnostics)
       exosim_msg ("effective multiaccum: %s"%(opt.effective_multiaccum), opt.diagnostics)
@@ -308,44 +312,51 @@ def run(opt):
 # =============================================================================
       
 def sanity_check(opt):
-    import scipy.constants as spc
     
-    wl = opt.x_wav_osr[1::3]
+    wl = opt.x_wav_osr[1::3][::-1]
+ 
     del_wl = abs(np.gradient(wl))
 #    del_wl = opt.d_x_wav_osr[1::3]*3
     star_spec = opt.star_sed
     star_spec.rebin(wl)
     T = opt.planet.planet.star.T
     trans_sed = opt.total_transmission.sed*u.dimensionless_unscaled
-    trans = Sed(opt.total_transmission.wl,trans_sed)
+    trans = Sed(opt.total_transmission.wl[::-1],trans_sed[::-1])
+ 
     trans.rebin(wl)
+
     QE = opt.qe_spec
+    QE.sed = QE.sed[::-1]
+    QE.wl = QE.wl[::-1]
     QE.rebin(wl)
+    
+ 
     quantum_yield = 1
     Rs = (opt.planet.planet.star.R).to(u.m)
     D = (opt.planet.planet.star.d).to(u.m)
-    n= quantum_yield* trans.sed*del_wl*np.pi*planck(wl,T)*(Rs/D)**2*opt.Aeff*QE.sed/(spc.h*spc.c/(wl*1e-6))
+    n= quantum_yield* trans.sed*del_wl*np.pi*planck(wl,T)*(Rs/D)**2*opt.Aeff*QE.sed/(const.h.value*const.c.value/(wl*1e-6))
+      # opt.Re = qe.sed * (qe.wl).to(u.m)/(const.c.value * const.h.value * u.m)
 
-    n2= quantum_yield* trans.sed*del_wl*star_spec.sed*opt.Aeff*QE.sed/(spc.h*spc.c/(wl*1e-6))
+    n2= quantum_yield* trans.sed*del_wl*star_spec.sed*opt.Aeff*QE.sed/(const.h*const.c/(wl*1e-6))
     
-    jex_sig = quantum_yield*opt.fp_signal[1::3,1::3].sum(axis=0)
+    ex_sig = quantum_yield*opt.fp_signal[1::3,1::3].sum(axis=0)
     R = opt.channel.pipeline_params.pipeline_R.val
     del_wav = wl/R
-    opt.exp_sig  = opt.t_int*del_wav*jex_sig/del_wl
+    opt.exp_sig  = opt.t_int*del_wav[::-1]*ex_sig/del_wl[::-1]
     
     if opt.diagnostics ==1:
         plt.figure('sanity check 1 - check focal plane signal')
         plt.plot(wl,n, 'b^', label='BB check')
         plt.plot(wl,n2, 'r+', label='Phoenix check')  # not convolved with PSF so peak may be higher
-        plt.plot(wl, jex_sig, 'gx', label='ExoSim')
+        plt.plot(wl[::-1], ex_sig, 'gx', label='ExoSim')
         plt.ylabel('e/s/pixel col'); plt.xlabel('pixel col wavelength (microns)')
         plt.legend(loc='best')
         
         plt.figure('sanity check 2 - expected final star signal in R bin of %s'%((R)))
-        plt.plot(wl, opt.exp_sig)
+        plt.plot(wl[::-1], opt.exp_sig)
         plt.ylabel('e/bin'); plt.xlabel('Wavelength (microns)')
             
         plt.figure('sanity check 3 - expected photon noise (sd) in R bin of %s'%((R)))
-        plt.plot(wl, opt.exp_sig**0.5)    
+        plt.plot(wl[::-1], opt.exp_sig**0.5)    
         plt.ylabel('e/bin'); plt.xlabel('Wavelength (microns)')  
- 
+     

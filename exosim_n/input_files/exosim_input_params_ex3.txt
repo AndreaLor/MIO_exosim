@@ -3,7 +3,7 @@
 sim_diagnostics      1
 # 1 = see diagnostics. 0 = hide diagnostics.  Recommend 0.  
                                            
-sim_mode              2 
+sim_mode              3 
 # 1 = OOT(with Allan). 2 = full transit. 3 = noise budget. 4 = OOT(no Allan).
 
 sim_output_type         1     

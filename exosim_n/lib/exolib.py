@@ -16,7 +16,7 @@ def exosim_error(error_msg):
     sys.exit(0)
     
 def exosim_msg(msg, prefix = None):
-  msg = msg if prefix==None else "[%s]: %s\n"%(prefix, msg)
+  # msg = msg if prefix==None else "[%s]: %s\n"%(prefix, msg)
   print(msg)
   
 def exosim_plot(figure_name, show, image=False, xlabel=None, 
@@ -181,12 +181,14 @@ def rebin(x, xp, fp):
     new_c_2 = np.interp(x+0.5*delta, xpc, c, 
                         left=0.0, right=0.0)
     new_f = (new_c_2 - new_c_1)/delta
-    
+  
 
  
   else:
     # Interpolate !
     new_f = np.interp(x, xp, fp, left=0.0, right=0.0)
+    # new_f = np.interp(x, xp, fp)
+
     
   new_f = (new_f.value)*fp.unit
   
@@ -279,6 +281,7 @@ def planck(wl, T):
     
   a = np.float64(1.191042768e8)*u.um**5 *u.W/ u.m**2 /u.sr/u.um
   b = np.float64(14387.7516)*1*u.um * 1*u.K
+  np.seterr(divide='ignore', invalid='ignore')
   try:
     x = b/(wl*T)
     bb = a/wl**5 / (np.exp(x) - 1.0)
@@ -289,9 +292,10 @@ def planck(wl, T):
  
 def sed_propagation(sed, transmission, emissivity=None, temperature = None):
   sed.sed = sed.sed*transmission.sed
-  if emissivity and temperature:
+  
+  if emissivity!=None and temperature!=None:
     sed.sed = sed.sed + emissivity.sed*planck(sed.wl, temperature)
-
+   
   return sed
   
 def Psf_Interp(zfile, delta_pix, WavRange):

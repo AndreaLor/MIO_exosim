@@ -48,7 +48,7 @@ class recipe_1(object):
         
      
         noise_type = int(opt.noise.sim_noise_source.val)
-        noise_type = 0
+      
 
                
         nb_dict = {'rn'            :[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],

@@ -86,45 +86,50 @@ def run(results_file):
             r = 4 
             if ch== 'NIRCam_TSGRISM_F444W' or ch== 'NIRCam_TSGRISM_F322W2':
                 r=2
+            
+            p_std[np.isnan(p_std)] = 0
+       
              
-            # z = np.polyfit(wl, p_std*1e6, r)
+            z = np.polyfit(wl, p_std*1e6, r)
                                          
-            # plt.figure('precision %s'%(res_dict['time_tag']))
-            # plt.ylabel('1 sigma error on transit depth (ppm)')
-            # plt.xlabel('Wavelength ($\mu m$)')
-            # plt.plot(wl, p_std*1e6, 'bo', alpha=0.5)
+            plt.figure('precision %s'%(res_dict['time_tag']))
+            plt.ylabel('1 sigma error on transit depth (ppm)')
+            plt.xlabel('Wavelength ($\mu m$)')
+            plt.plot(wl, p_std*1e6, 'bo', alpha=0.5)
+            
+            
     
-            # p= np.poly1d(z)
-            # # yhat = p(wav)
-            # # ybar = sum(p_std)/len(p_std)
-            # # SST = sum((p_std - ybar)**2)
-            # # SSreg = sum((yhat - ybar)**2)
-            # # R2 = SSreg/SST  
-            # y =0
-            # for i in range (0,r+1):
-            #     y = y + z[i]*wl**(r-i) 
+            p= np.poly1d(z)
+            # yhat = p(wav)
+            # ybar = sum(p_std)/len(p_std)
+            # SST = sum((p_std - ybar)**2)
+            # SSreg = sum((yhat - ybar)**2)
+            # R2 = SSreg/SST  
+            y =0
+            for i in range (0,r+1):
+                y = y + z[i]*wl**(r-i) 
                 
-            # plt.figure('precision %s'%(res_dict['time_tag']))
-            # plt.plot(wl, y, '-', color='r', linewidth=2) 
-            # plt.grid(True)
+            plt.figure('precision %s'%(res_dict['time_tag']))
+            plt.plot(wl, y, '-', color='r', linewidth=2) 
+            plt.grid(True)
             
                 
-            # for ntransits in [1,10,100]:
-            #     f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
-            #     rand_spec = np.array(f(wl))
-            #     if ntransits == 1:
-            #         plt.figure('sample spectrum for %s transit %s'%(ntransits, res_dict['time_tag']))  
-            #     else:
-            #         plt.figure('sample spectrum for %s transits %s'%(ntransits, res_dict['time_tag']))  
-            #     plt.plot(cr_wl,cr, '-', color='r', linewidth=2, label='input spectrum')
-            #     for i in range(len(wl)):
-            #         rand_spec[i] = np.random.normal(rand_spec[i], y[i]/1e6/np.sqrt(ntransits))
-            #     plt.plot(wl, rand_spec, 'o-', color='b', label = 'randomized spectrum')
-            #     plt.errorbar(wl, rand_spec, y/1e6/np.sqrt(ntransits), ecolor='b')
-            #     plt.legend(loc='best')
-            #     plt.ylabel('Contrast ratio')
-            #     plt.xlabel('Wavelength ($\mu m$)')
-            #     plt.grid(True)
+            for ntransits in [1,10,100]:
+                f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
+                rand_spec = np.array(f(wl))
+                if ntransits == 1:
+                    plt.figure('sample spectrum for %s transit %s'%(ntransits, res_dict['time_tag']))  
+                else:
+                    plt.figure('sample spectrum for %s transits %s'%(ntransits, res_dict['time_tag']))  
+                plt.plot(cr_wl,cr, '-', color='r', linewidth=2, label='input spectrum')
+                for i in range(len(wl)):
+                    rand_spec[i] = np.random.normal(rand_spec[i], y[i]/1e6/np.sqrt(ntransits))
+                plt.plot(wl, rand_spec, 'o-', color='b', label = 'randomized spectrum')
+                plt.errorbar(wl, rand_spec, y/1e6/np.sqrt(ntransits), ecolor='b')
+                plt.legend(loc='best')
+                plt.ylabel('Contrast ratio')
+                plt.xlabel('Wavelength ($\mu m$)')
+                plt.grid(True)
 
 
 
@@ -265,6 +270,10 @@ def run(results_file):
                 f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
                 rand_spec = np.array(f(wl))
                 
+                y = fracNoT14_mean*np.sqrt(2)
+                
+                 
+                
                 for ntransits in [1,10,100]:
                     plt.figure('sample spectrum for %s transit %s'%(ntransits, res_dict['time_tag']))  
                     plt.plot(cr_wl,cr, '-', color='r', linewidth=2, label='input spectrum')
@@ -345,17 +354,14 @@ def run(results_file):
             plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
             plt.ylabel('Noise (e$^-$)')
             plt.xlabel('Wavelength ($\mu m$)')
-            plt.grid(True)
-            
+            plt.grid(True)        
             
             plt.figure('sigp')
             N = 2367
             sigp = np.sqrt(2)*(no_mean/sig_mean)/np.sqrt(N)
             plt.plot(wl, sigp*1e6)
             
-            xxx
-            
-            
+  
             
             if res_dict['simulation_realisations'] > 1:
                 for i in range(no_stack.shape[0]):
@@ -391,10 +397,9 @@ def run(results_file):
                 plt.xlabel('Wavelength ($\mu m$)')           
                 cbar = plt.colorbar() 
                 cbar.set_label('Count (e$^-$)',size=12)
-
             
     plt.show()
 
 if __name__ == "__main__":     
 
-    run('Full_transit_AIRS CH1_GJ 1214 b_2020_12_14_1451_36.pickle')
+    run('OOT_SNR_AIRS CH1_GJ 1214 b_2020_12_16_1413_45.pickle')

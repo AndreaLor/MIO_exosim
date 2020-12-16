@@ -30,6 +30,7 @@ def run(opt):
                      
 #      opt.x_wav_osr, opt.x_pix_osr, opt.y_pos_osr = usePoly(opt)
       opt.x_wav_osr, opt.x_pix_osr, opt.y_pos_osr = useInterp(opt)
+    
      
       exosim_msg('tel check 1: %s'%(opt.star.sed.sed.max()), opt.diagnostics)
       opt.star_sed = copy.deepcopy(opt.star.sed) #copy of star flux at telescope
