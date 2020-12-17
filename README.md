@@ -40,7 +40,8 @@ These are the stellar spectrum models.  Unzip the folder to give the folder labe
 These contain pre-calculated limb darkening coefficients obtained using ExoTETHyS (Morello, G. et al. (2020). AJ, 159,  75).  Unzip the folders and move them into `ExoSim_N/archive/` . 
 
 From the [NASA Exoplanet Archive](https://exoplanetarchive.ipac.caltech.edu/cgi-bin/TblView/nph-tblView?app=ExoTbls&config=PS&constraint=default_flag=1), download the 'Planetary Systems' table as follows: under 'Download Table' choose 'CSV format', 'Download all columns', 'Download all rows', and then hit 'Download Table'.  Move the .csv file into the `ExoSim_N/archive/` .
- 
+
+
 ### Set up
 Next navigate to inside the `ExoSim_N` folder and run `setup.py`.  This will setup the remaining package dependencies for ExoSim-N.
 
@@ -51,6 +52,8 @@ Next navigate to inside the `ExoSim_N` folder and run `setup.py`.  This will set
 ### Output folder
 By default ExoSim_N will place the results from the simulations into the `ExoSim_N/output/` folder. However you may choose a different location to store these results.  To do so find the file `exosim_paths.txt` in the `ExoSim_N/exosim_n/input_files/` folder, and next to `output_directory` (leaving at least one white space gap),  enter the full path to the location including folder name, e.g. `/Users/UserA/Desktop/ExoSim_Results`.  The folder will be automatically generated. If this is blank, the default location will be chosen.
 
+### Your system
+ExoSim_N is a generic shell.  You will need a 'system' folder that contains all instrument-specific data to make it work.  The folder should be named with the name of the system: e.g. 'ProjectX', and placed in the `ExoSim_N/systems/` folder.  The folder must contain an ExoSim-compatible XML input configuration file with the name `ProjectX.XML`  (replace 'ProjectX with name of the system).  The folder also needs to have a folder named `PSF` in which specific PSFs are contained, if you wish to use pre-generated PSFs.  Alternately the code can use Airy functions to produce PSFs.  All transmission files, QE files, etc. should be contained in this system folder.    To obtain the system folders for Ariel and other missions please contact: subhajit.sarkar@astro.cf.ac.uk.
 
 Running a simulation
 ------
@@ -75,7 +78,7 @@ In addition a .txt with the same name as the dictionary file will be generated c
 Use of code
 ------
 
-Please contact subhajit.sarkar@astro.cf.ac.uk
+Please contact: subhajit.sarkar@astro.cf.ac.uk
  
 Citing
 ------
