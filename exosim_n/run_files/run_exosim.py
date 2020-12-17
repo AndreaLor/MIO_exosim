@@ -24,18 +24,35 @@ def run(params_file):
   exosim_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
   exosim_msg('Reading instrument file ... \n', 1)
 
-  instrument_file = 'exosim_n/xml_files/ARIEL.xml'
-   
-  opt = Options(filename='%s/%s'%(exosim_path,instrument_file)).opt 
-  opt.ICF = instrument_file
-  opt.exosim_path = exosim_path
-  opt.__path__ = '%s/%s'%(exosim_path, 'exosim_n')
+
+  opt = Options(filename='').opt
 
   
   exosim_msg('Apply user-defined adjustments to default... \n', 1)
   paths_file = '%s/exosim_n/input_files/exosim_paths.txt'%(exosim_path)
   params_file = '%s/exosim_n/input_files/%s'%(exosim_path, params_file)
+  
+  #first find the system from the input text file and then find the XML ICF file for system
+  params_to_opt = Params(opt, params_file, 3)  
+  system = (params_to_opt.params['obs_system'])
+  ICF = '%s/exosim_n/systems/%s/%s.XML'%(exosim_path, system, system)
+
+  # now use ICF
+  opt = Options(ICF).opt    
+  opt.exosim_path = exosim_path
+  opt.__path__ = '%s/%s'%(exosim_path, 'exosim_n')
  
+  
+  #read in path information set by user
+  params_to_opt = Params(opt, paths_file, 0)  
+  paths = params_to_opt.params
+  opt = params_to_opt.opt # adjust default values to user defined ones
+ 
+  # read in input parameters for this simulation
+  params_to_opt = Params(opt, params_file, 1)  
+  input_params = params_to_opt.params
+  opt = params_to_opt.opt # adjust default values to user defined ones   
+  
   #read in path information set by user
   params_to_opt = Params(opt, paths_file, 0)  
   paths = params_to_opt.params
@@ -69,7 +86,7 @@ def run(params_file):
 
   # pl = opt.exosystem_params.planet_name.val
   make_planet_xml_file(opt, pl)    
-  ex_file = '%s/exosim_n/xml_files/exosystems/%s.xml'%(exosim_path, pl)
+  ex_file = '%s/exosim_n/exoplanets/%s.xml'%(exosim_path, pl)
   opt3 = Options(ex_file).opt
   for key in opt3.__dict__:
      setattr(opt, str(key), opt3.__dict__[key])

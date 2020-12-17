@@ -40,13 +40,14 @@ class Params():
                 params[aa[0]] = key_value # set up dictionary keys from first element in each row               
 
         self.params = params
-
-        if stage == 0:
-            self.stage_0()        
-        elif stage == 1:
-            self.stage_1()
-        elif stage ==2:
-            self.stage_2()
+            
+        if stage < 3: 
+                if stage == 0:
+                    self.stage_0()        
+                elif stage == 1:
+                    self.stage_1()
+                elif stage ==2:
+                    self.stage_2()
             
             
     def stage_0(self):    

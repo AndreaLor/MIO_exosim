@@ -45,41 +45,50 @@ class Options(object):
    
   def __init__(self, filename = None, default_path = None):
     
-    self.opt = self.parser(ET.parse(filename).getroot())
-
-    exosim_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
- 
-    self.opt = self.parser(ET.parse(filename).getroot())
+    self.opt = self.parser2()
     
-    if self.opt.type.name == "configuration":   
     
-        if default_path:
-          setattr(self.opt, "__path__", default_path)
-        elif hasattr(self.opt.common, "config_path"):
-          setattr(self.opt, "__path__", 
-                os.path.expanduser(self.opt.common.config_path().replace('__path__', __path__[0])))  
+    if filename != '':
     
-        wl_delta = self.opt.common.wl_min()/ self.opt.common.logbinres()
+        self.opt = self.parser(ET.parse(filename).getroot())
     
-        setattr(self.opt.common, 'common_wl', (np.arange(self.opt.common.wl_min.val.value,
-                        self.opt.common.wl_max.val.value,
-                        wl_delta.value)* wl_delta.unit))
-    
-        # if default_path:
-        #   setattr(self.opt, "__path__", default_path)
-       
-        # elif hasattr(self.opt.common, "ConfigPath"):
-        #   setattr(self.opt, "__path__", 
-        #         os.path.expanduser(self.opt.common.ConfigPath().replace('__path__', __path__[0])))
-        # else:
-        #   exosim_error("Path to config files not defined")
+        exosim_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+     
+        self.opt = self.parser(ET.parse(filename).getroot())
         
+        if self.opt.type.name == "configuration":   
         
-        self.validate_options()
-        # self.calc_metaoptions()
+            if default_path:
+              setattr(self.opt, "__path__", default_path)
+            elif hasattr(self.opt.common, "config_path"):
+              setattr(self.opt, "__path__", 
+                    os.path.expanduser(self.opt.common.config_path().replace('__path__', __path__[0])))  
         
-        self.calc_metaoption_qe_rms_matrix()
+            wl_delta = self.opt.common.wl_min()/ self.opt.common.logbinres()
         
+            setattr(self.opt.common, 'common_wl', (np.arange(self.opt.common.wl_min.val.value,
+                            self.opt.common.wl_max.val.value,
+                            wl_delta.value)* wl_delta.unit))
+        
+            # if default_path:
+            #   setattr(self.opt, "__path__", default_path)
+           
+            # elif hasattr(self.opt.common, "ConfigPath"):
+            #   setattr(self.opt, "__path__", 
+            #         os.path.expanduser(self.opt.common.ConfigPath().replace('__path__', __path__[0])))
+            # else:
+            #   exosim_error("Path to config files not defined")
+            
+            
+            self.validate_options()
+            # self.calc_metaoptions()
+            
+            self.calc_metaoption_qe_rms_matrix()
+      
+  def parser2(self):
+    obj = Entry()
+    return obj
+      
   def parser(self, root):
     obj = Entry()
     

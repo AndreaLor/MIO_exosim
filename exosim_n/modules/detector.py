@@ -18,7 +18,6 @@ import sys
  
 def run(opt):
     
-
 #==============================================================================
 #     get PSFs  
 #==============================================================================
@@ -26,22 +25,13 @@ def run(opt):
             psf = exolib.Psf(opt.x_wav_osr.value, opt.channel.camera.wfno.val, opt.channel.wfno_y.val, opt.fp_delta.value, shape='airy')  
             psf[np.isnan(psf)] =0
             opt.psf_type = 'airy'
-      elif opt.simulation.sim_use_wfe.val  == 1: 
-            if opt.system == 'Ariel':
-                zfile = '%s/data/%s/PSF/%s_psf_stack.fits'%(opt.__path__,opt.system,opt.channel.name)
-                if opt.channel.is_spec.val == False:
-                    psf = exolib.Psf_photometer(zfile, opt.fp_delta, opt.channel.osf(), opt.fpn, opt.x_wav_osr)   
-                else:
-                    psf = exolib.Psf_spectrometer(zfile, opt.fp_delta, opt.channel.osf(), opt.fpn, opt.x_wav_osr)  
+      elif opt.simulation.sim_use_wfe.val  == 1:      
+            zfile = '%s/systems/%s/PSF/%s_psf_stack.fits'%(opt.__path__,opt.system,opt.channel.name)
+            if opt.channel.is_spec.val == False:
+                psf = exolib.Psf_photometer(zfile, opt.fp_delta, opt.channel.osf(), opt.fpn, opt.x_wav_osr)   
             else:
-                if os.path.exists('%s/../archive/PSF/%s_psf_stack.npy'%(opt.__path__,opt.channel.name)):
-                  psf_stack = np.load('%s/../archive/PSF/%s_psf_stack.npy'%(opt.__path__,opt.channel.instrument.val))
-                  psf_stack_wl =  1e6*np.load('%s/../archive/PSF/%s_psf_stack_wl.npy'%(opt.__path__,opt.channel.instrument.val))
-                  psf = interpolate.interp1d(psf_stack_wl, psf_stack, axis=2,bounds_error=False, fill_value=0.0, kind='linear')(opt.x_wav_osr.value)      
-                  psf = np.rot90(psf) 
-                  opt.psf_type = 'wfe'
- 
-
+                psf = exolib.Psf_spectrometer(zfile, opt.fp_delta, opt.channel.osf(), opt.fpn, opt.x_wav_osr)  
+      
       opt.psf = psf 
       opt.channel.name
 

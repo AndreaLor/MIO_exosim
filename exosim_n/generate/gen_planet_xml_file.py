@@ -63,7 +63,7 @@ def make_planet_xml_file(opt, pl):
     
     exosim_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
 
-    target_folder = '%s/exosim_n/xml_files/exosystems'%(exosim_path)
+    target_folder = '%s/exosim_n/exoplanets'%(exosim_path)
 
     
     # pl = 'HD 209458 b'

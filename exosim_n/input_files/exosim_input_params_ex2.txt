@@ -54,7 +54,7 @@ obs_type	  1
 # 1 = primary transit. 2 = secondary eclipse. 
 
 obs_system	Ariel
-# put in named system
+# put in named system; a folder corresponding to the system is needed under 'systems' folder
 
 obs_frac_t14_pre_transit	 
 # Enter fraction of transit duration to cover pre-transit. Recommend keep set to 0.5.  Only applied in full transit mode. 
