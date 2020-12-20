@@ -26,7 +26,7 @@ or
 
 Next, clone the repository from github.
 
-    git clone https://github.com/subisarkar/ExoSim-N.git
+    git clone https://github.com/subisarkar/ExoSim_N.git
 
 
 ### Databases

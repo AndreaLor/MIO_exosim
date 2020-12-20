@@ -356,10 +356,10 @@ def run(results_file):
             plt.xlabel('Wavelength ($\mu m$)')
             plt.grid(True)        
             
-            plt.figure('sigp')
-            N = 2367
-            sigp = np.sqrt(2)*(no_mean/sig_mean)/np.sqrt(N)
-            plt.plot(wl, sigp*1e6)
+            # plt.figure('sigp')
+            # N = 2367
+            # sigp = np.sqrt(2)*(no_mean/sig_mean)/np.sqrt(N)
+            # plt.plot(wl, sigp*1e6)
             
   
             

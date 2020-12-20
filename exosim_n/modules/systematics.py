@@ -10,45 +10,77 @@ from exosim_n.lib.exolib import exosim_msg
 import copy
 import matplotlib.pyplot as plt
 from scipy.interpolate import interp2d
+import os, sys
 
 
 
 def add_systematic_grid(opt):
     
     wl = opt.x_wav_osr[1::3]
+    
     time = opt.ndr_end_time
     
-    syst_grid_path = opt.simulation.sim_systematic_model_path.val
-    syst_grid0 = np.loadtxt(syst_grid_path)
+    syst_grid_name = opt.simulation.sim_systematic_model_name.val
+    syst_grid_folder = '%s/exosim_n/data/systematic_models/%s'%(opt.exosim_path, syst_grid_name)
+   
+    # print ('%s/syst.txt'%(syst_grid_folder))
     
-    idx = syst_grid_path.find('systematic_models')+18
-    syst_wl =  np.loadtxt('%s%s'%(syst_grid_path[:idx], 'wl.txt'))
-    syst_time =  np.loadtxt('%s%s'%(syst_grid_path[:idx], 'time.txt'))
-    
-    
-    f = interp2d(syst_time, syst_wl, syst_grid0, kind='linear')
+    # xxxxx
+    if os.path.exists('%s/syst.txt'%(syst_grid_folder)):        
+        syst_grid0 = np.loadtxt('%s/syst.txt'%(syst_grid_folder))     
+        syst_wl = np.loadtxt('%s/wl.txt'%(syst_grid_folder))
+        syst_time = np.loadtxt('%s/time.txt'%(syst_grid_folder))
+    elif os.path.exists('%s/syst.npy'%(syst_grid_folder)):      
+        syst_grid0 = np.load('%s/syst.npy'%(syst_grid_folder))  +1.0  
+        syst_wl = np.load('%s/wl.npy'%(syst_grid_folder)) 
+        syst_time = np.load('%s/time.npy'%(syst_grid_folder))
+    else:
+        exosim_msg('ERROR Systematics module 1: No systematic files found')
+        sys.exit()
+   
+    f = interp2d(syst_time, syst_wl[::-1], syst_grid0, kind='linear')\
+        
+    # time = syst_time
     syst_grid = f(time, wl)
     
-    plt.figure('syst_grid')
-    plt.plot(time, syst_grid[100])
+    plt.figure('syst_grid0')
+    for i in range (len(wl)):
+        if i == 0:
+            plt.plot(time, syst_grid[i], 'r-', alpha = 0.5, markersize = 1,label = 'interpolated to ExoSim grid')
+        else:
+            plt.plot(time, syst_grid[i], 'r-', markersize = 1, alpha = 0.5)
+    plt.figure('syst_grid0')
+    for i in range (len(syst_wl)):
+        if i == 0:
+            plt.plot(syst_time, syst_grid0[i], 'b-', markersize = 1, alpha = 0.5, label = 'input file')
+        else:
+            plt.plot(syst_time, syst_grid0[i], 'b-', markersize = 1, alpha = 0.5)
+        plt.xlabel('time (s)')
+        plt.ylabel('fractional change')
+    plt.legend()
     
-    # print (np.diff(wl))
-    # print (np.diff(syst_wl))
     
-    plt.figure('syst_lc_ex')
-    plt.plot(time, opt.lc[int(len(wl)/2)], 'r-')
-    
-    opt.lc *= syst_grid
-    
-    opt.lc_original = copy.deepcopy(opt.lc)
-    
-    print (opt.lc.shape)
-    
-    
-    plt.figure('syst_lc_ex')
-    plt.plot(time, opt.lc[int(len(wl)/2)], 'b-')
+    # plt.figure('syst_grid1')
+    # for i in range (len(wl)):
+    #     if i == 0:
+    #         plt.plot(wl[i], syst_grid[i].std(), 'rx',  markersize = 1,label = 'interpolated to ExoSim grid')
+    #     else:
+    #         plt.plot(wl[i], syst_grid[i].std(), 'rx',  alpha = 0.5)
+    # plt.figure('syst_grid2')
+    std = syst_grid0.max(axis = 1)
+    plt.figure('syst_grid1')
+    plt.plot(syst_wl, std, 'bx',  alpha = 0.5)
+    std2 = syst_grid.max(axis = 1)
+    plt.figure('syst_grid1')
+    plt.plot(wl, std2, 'rx',  alpha = 0.5)
 
-
+    
+  
+    opt.syst_grid = syst_grid
+    
+    opt.syst_grid_original = copy.deepcopy(opt.syst_grid)
+ 
+  
 
 def run(opt):
     

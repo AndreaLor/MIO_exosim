@@ -9,7 +9,7 @@ Phase A ExoSim pipeline
  
 
 import numpy as np
-from exosim_n.EDaRP import calibration, jitterdecorr, binning
+from exosim_n.EDaRP import calibration, jitterdecorr, binning, detrend
 from exosim_n.lib.exolib import exosim_msg, exosim_plot
 from astropy import units as u  
  
@@ -20,7 +20,10 @@ class pipeline_stage_1():
         
         
         self.opt = opt
+         
         self.exp_end_time_grid = self.opt.ndr_end_time[self.opt.effective_multiaccum-1::self.opt.effective_multiaccum]
+        
+        self.opt.exp_end_time_grid = self.exp_end_time_grid
         self.ndr_end_time_grid = self.opt.ndr_end_time
         self.opt.data_raw = opt.data*1
         
@@ -481,11 +484,17 @@ class pipeline_stage_2():
         self.ndr_end_time_grid = opt.ndr_end_time
         self.data_raw = opt.data_raw
         
+        if self.opt.simulation.sim_use_systematic_model.val ==1 :
+            self.detrend()  
         if self.opt.timeline.apply_lc.val ==1 :
             self.fitLC()            
         elif self.opt.timeline.apply_lc.val ==0 :
             self.ootSNR()
-            
+   
+    def detrend(self):
+        self.detrend = detrend.Detrend(self.binnedLC, self.binnedWav, self.opt)   
+      
+        
     def fitLC(self):
         self.processLC = binning.processLC(self.binnedLC, self.binnedWav, self.binnedGamma, self.opt)   
         self.transitDepths = self.processLC.transitDepths

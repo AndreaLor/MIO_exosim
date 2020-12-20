@@ -395,8 +395,14 @@ def noise_simulator(opt):
   else:
      exosim_msg ("APPLYING LIGHT CURVE...", opt.diagnostics)
      signal *= opt.lc 
-      
-      
+     
+     
+  if opt.simulation.sim_use_systematic_model.val ==1:
+ 
+     exosim_msg ("APPLYING SYSTEMATIC GRID...", opt.diagnostics)
+     signal *= opt.syst_grid      
+
+
     #==============================================================================
     # add PRNU  APPPLY BEFOre PHOTON NOISE ADDED!!
     #==============================================================================
@@ -600,6 +606,7 @@ def run(opt):
   opt.emission.sed =  copy.deepcopy(opt.emission_sed_original) # "
 
   opt.lc = copy.deepcopy(opt.lc_original)
+  opt.syst_grid = copy.deepcopy(opt.syst_grid_original)
     
   # import matplotlib.pyplot as plt
   # plt.figure('syst_lc_ex2')
