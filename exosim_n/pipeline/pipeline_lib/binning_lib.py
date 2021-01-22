@@ -34,7 +34,7 @@ import pytransit
 from scipy.optimize import minimize
 from astropy import units as u
 from pytransit import QuadraticModel, SwiftModel
-from exosim_n.lib.exolib import exosim_msg, exosim_plot
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
 
 
 #==============================================================================
@@ -118,12 +118,12 @@ class processLC():
         ProgMax = 100    # number of dots in progress bar
         if nWLs<ProgMax:   ProgMax = nWLs   # if less than 20 points in scan, shorten bar
         print ("|" +    ProgMax*"-"    + "|     Fitting model light curves")
-        sys.stdout.write('|'); sys.stdout.flush();  # exosim_msg start of progress bar
+        sys.stdout.write('|'); sys.stdout.flush();  # exosim_n_msg start of progress bar
         nProg = 0   # fraction of progress   
 
         step = 1
         # if self.opt.pipeline.useReduced.val == 1:
-        #     exosim_msg ("using reduced number of R-bins for speed..." , self.opt.diagnostics)
+        #     exosim_n_msg ("using reduced number of R-bins for speed..." , self.opt.diagnostics)
         #     step = 5        
         
              
@@ -159,7 +159,7 @@ class processLC():
                             self.model_gamma3.append(gamma3)
                             self.model_gamma4.append(gamma4)
                 
-            exosim_msg ('%s %s %s %s'%(i, len(self.transitDepths), p, self.binnedWav[i]),  self.opt.diagnostics)      
+            exosim_n_msg ('%s %s %s %s'%(i, len(self.transitDepths), p, self.binnedWav[i]),  self.opt.diagnostics)      
 
     
         
@@ -355,9 +355,9 @@ class extractSpec():
         ApShape = self.opt.pipeline.pipeline_ap_shape.val
         wl_max = self.opt.channel.pipeline_params.wavrange_hi.val
         
-        exosim_msg ("ap factor %s"%(ApFactor) , self.opt.diagnostics)
-        exosim_msg ("ap shape %s"%(ApShape ),      self.opt.diagnostics)
-        exosim_msg ("max wl %s"%(wl_max), self.opt.diagnostics)
+        exosim_n_msg ("ap factor %s"%(ApFactor) , self.opt.diagnostics)
+        exosim_n_msg ("ap shape %s"%(ApShape ),      self.opt.diagnostics)
+        exosim_n_msg ("max wl %s"%(wl_max), self.opt.diagnostics)
      
 #====================plot mask centre and edges========================================================== 
 
@@ -388,7 +388,7 @@ class extractSpec():
         else:
             Cen0 = (self.data.shape[0]/2.)-0.5
         
-        exosim_msg ("Cen0 %s"%(Cen0),  self.opt.diagnostics)
+        exosim_n_msg ("Cen0 %s"%(Cen0),  self.opt.diagnostics)
                            
         X1 = Cen0 - np.array(w_list)/pixSize
         X2 = Cen0 +  np.array(w_list)/pixSize
@@ -400,20 +400,20 @@ class extractSpec():
         
 
         if self.final_ap ==2 or self.final_ap ==1:   #excludes signal only and n_pix runs 
-            exosim_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
                          image = True,
                          image_data = self.data.sum(axis=2), aspect='auto', interpolation = None)    
         if self.final_ap ==2:   #2 = test ap chosen in noisy data 
-            exosim_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
                          ydata = X1, marker = 'b--')
-            exosim_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
                          ydata = X2, marker = 'b--')   
         if self.final_ap ==1:   #1 = final ap chosen in noisy data   
-            exosim_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
                          ydata = X0, marker = 'c--',  linewidth =3)  
-            exosim_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
                          ydata = X1, marker = 'w--',  linewidth =3)              
-            exosim_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
                          ydata = X2, marker = 'w--',  linewidth =3)              
 
 
@@ -426,7 +426,7 @@ class extractSpec():
         
         if self.final_ap == 1:
             print ("|" +    ProgMax*"-"    + "|     Applying variable position mask: progress")
-            sys.stdout.write('|'); sys.stdout.flush();  # exosim_msg start of progress bar
+            sys.stdout.write('|'); sys.stdout.flush();  # exosim_n_msg start of progress bar
         nProg = 0   # fraction of progress   
                
     
@@ -503,13 +503,13 @@ class extractSpec():
  
 
 
-        exosim_plot('Centre of mask (pixel units) vs exposure', self.opt.diagnostics, 
+        exosim_n_plot('Centre of mask (pixel units) vs exposure', self.opt.diagnostics, 
              ydata=Cen_list)    
         
-        exosim_plot('width of mask (microns) vs pixel column', self.opt.diagnostics, 
+        exosim_n_plot('width of mask (microns) vs pixel column', self.opt.diagnostics, 
              ydata=w_list, marker='bo')  
         
-        exosim_plot('width of mask (microns) vs wavelength of pixel column', self.opt.diagnostics, 
+        exosim_n_plot('width of mask (microns) vs wavelength of pixel column', self.opt.diagnostics, 
              xdata=wl, ydata = w_list, marker = 'bo' )     
         
   
@@ -539,14 +539,14 @@ class extractSpec():
     def binSpectra(self):    
         
         wl = self.opt.cr_wl.value
-        R = self.opt.channel.pipeline_params.pipeline_R.val
+        R = self.opt.pipeline.pipeline_R.val
         wavrange_lo = self.opt.channel.pipeline_params.wavrange_lo.val
         wavrange_hi = self.opt.channel.pipeline_params.wavrange_hi.val
         wavrange = [wavrange_lo, wavrange_hi]
         x_wav_osr = self.opt.x_wav_osr
         x_pix_osr = self.opt.x_pix_osr
         pixSize = (self.opt.channel.detector_pixel.pixel_size.val).to(u.um).value
-        bin_size = self.opt.channel.pipeline_params.pipeline_bin_size.val
+        bin_size = self.opt.pipeline.pipeline_bin_size.val
 
         cond=1 #directs to new method
 #       cond=0 # previous method
@@ -554,7 +554,7 @@ class extractSpec():
 
 #        1) find the bin sizes in wavelength space
         if self.opt.pipeline.pipeline_binning.val == 'R-bin' or  self.opt.pipeline.pipeline_binning.val == 'R' or  self.opt.pipeline.pipeline_binning.val == 'R_bin':
-            exosim_msg ('binning spectra into R-bins...',  self.opt.diagnostics)
+            exosim_n_msg ('binning spectra into R-bins...',  self.opt.diagnostics)
             # a) REMOVE ZEROS FROM EACH END OF WL SOLUTION
             for i in range (len(wl)):
                 if wl[i]>0:
@@ -649,7 +649,7 @@ class extractSpec():
                      if ct == len(xedge0)-1:
                          break
                      if xedge0[ct+1]- xedge0[ct] < pixSize:
-                         exosim_msg ("breaking since.. bin size < 1 pixel", self.opt.diagnostics)              
+                         exosim_n_msg ("breaking since.. bin size < 1 pixel", self.opt.diagnostics)              
                          cond2 = 1               
                          break
                      
@@ -660,7 +660,7 @@ class extractSpec():
                          wavcen_list.append(wavcen0[ct])
                          ct = ct+1
                 if cond2 ==1:        
-                    exosim_msg ("min wav before subpixel binning starts: %s"%(np.min(wavcen_list)),   self.opt.diagnostics)            
+                    exosim_n_msg ("min wav before subpixel binning starts: %s"%(np.min(wavcen_list)),   self.opt.diagnostics)            
                     
                 for exp in range(self.spectra.shape[0]): 
                                               
@@ -761,7 +761,7 @@ class extractSpec():
                     wavcen_list0 = wavcen0[:-1] 
     
                     
-                    exosim_plot('binned spectrum', self.opt.diagnostics,
+                    exosim_n_plot('binned spectrum', self.opt.diagnostics,
                                 xdata = wavcen_list0, ydata = count, marker = 'bo') 
                     
            
@@ -841,7 +841,7 @@ class extractSpec():
                     
                     wavcen_list0 = wavcen0[1:]                 
                     
-                    exosim_plot('binned spectrum', self.opt.diagnostics,
+                    exosim_n_plot('binned spectrum', self.opt.diagnostics,
                                  xdata = wavcen_list0, ydata=count, marker = 'bo-')
                    
                         
@@ -855,12 +855,12 @@ class extractSpec():
             self.binnedWav = wavcen_list0
             
      
-            exosim_msg('R-power obtained %s'%(np.mean(self.binnedWav/np.gradient(self.binnedWav))),self.opt.diagnostics)
+            exosim_n_msg('R-power obtained %s'%(np.mean(self.binnedWav/np.gradient(self.binnedWav))),self.opt.diagnostics)
            
             
          
         elif self.opt.pipeline.pipeline_binning.val  == 'fixed-bin' or self.opt.pipeline.pipeline_binning.val  == 'fixed' or self.opt.pipeline.pipeline_binning.val  == 'fixed_bin':
-            exosim_msg ('binning spectra into fixed-bins of size %s pixel columns'%(bin_size), self.opt.diagnostics)
+            exosim_n_msg ('binning spectra into fixed-bins of size %s pixel columns'%(bin_size), self.opt.diagnostics)
             
             offs=0          
 #============================use only temp for noise budget to match spectral ==================================================
@@ -890,19 +890,19 @@ class extractSpec():
     def binGamma(self):
         
         wl = self.opt.cr_wl.value
-        R = self.opt.channel.pipeline_params.pipeline_R.val
+        R = self.opt.pipeline.pipeline_R.val
         wavrange_lo = self.opt.channel.pipeline_params.wavrange_lo.val
         wavrange_hi = self.opt.channel.pipeline_params.wavrange_hi.val
         wavrange = [wavrange_lo, wavrange_hi]
         x_wav_osr = self.opt.x_wav_osr
         x_pix_osr = self.opt.x_pix_osr
         pixSize = (self.opt.channel.detector_pixel.pixel_size.val).to(u.um).value
-        bin_size = self.opt.channel.pipeline_params.pipeline_bin_size.val
+        bin_size = self.opt.pipeline.pipeline_bin_size.val
         useWeightedAv =1 #better than using simple average
 #        useWeightedAv =0 
         
         if self.opt.pipeline.pipeline_binning.val == 'R-bin':
-            exosim_msg ('binning LDCs into R-bins...', self.opt.diagnostics)
+            exosim_n_msg ('binning LDCs into R-bins...', self.opt.diagnostics)
             for i in range (len(wl)):
                 if wl[i]>0:
                     idx0 = i
@@ -1053,9 +1053,9 @@ class extractSpec():
                         count.append(S)
                         ct=ct+1                              
                         
-                exosim_plot('binned Gamma', self.opt.diagnostics,
+                exosim_n_plot('binned Gamma', self.opt.diagnostics,
                              xdata=self.opt.ldc[0], ydata=self.opt.ldc[jj+1], marker = 'ro-')
-                exosim_plot('binned Gamma', self.opt.diagnostics,
+                exosim_n_plot('binned Gamma', self.opt.diagnostics,
                              xdata=self.binnedWav, ydata=count, marker ='bo-')         
     
   
@@ -1070,7 +1070,7 @@ class extractSpec():
          
         elif self.opt.pipeline.pipeline_binning.val  == 'fixed-bin':
             bin_size = int(bin_size)
-            exosim_msg ('binning gamma into fixed-bins of size %s pixel columns...'%(bin_size), self.opt.diagnostics)
+            exosim_n_msg ('binning gamma into fixed-bins of size %s pixel columns...'%(bin_size), self.opt.diagnostics)
             self.gamma = self.opt.ldc[1:]
             for jj in range(self.gamma.shape[0]):            
                 spec  = self.gamma[jj]           

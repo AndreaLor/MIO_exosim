@@ -34,7 +34,7 @@ import pytransit
 from scipy.optimize import minimize
 from astropy import units as u
 from pytransit import QuadraticModel, SwiftModel
-from exosim_n.lib.exolib import exosim_msg, exosim_plot
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
 
 
 #==============================================================================

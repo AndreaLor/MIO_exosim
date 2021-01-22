@@ -1,8 +1,12 @@
 '''
-ExoSim_N
+exosim_n
 2.0
 Recipe 2 :
 Monte Carlo full transit simulation returning transit depths and noise on transit dept per spectral bin
+
+Each realisation run the stage 2 exosim_n routine with a new noise randomization
+The if the pipeline_auto_ap=1, the aperture mask size may vary with each realisation
+This should not matter since final measurement is the fractional transit depth
 
 '''
 
@@ -11,8 +15,8 @@ import time, os, pickle
 from datetime import datetime
 from exosim_n.modules import astroscene, telescope, channel, backgrounds
 from exosim_n.modules import detector, timeline, light_curve, systematics, noise
-from exosim_n.EDaRP.runEDaRP import pipeline_stage_1, pipeline_stage_2
-from exosim_n.lib.exolib import exosim_msg, exosim_plot, write_record
+from exosim_n.pipeline.run_pipeline import pipeline_stage_1, pipeline_stage_2
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot, write_record
 
 
 class recipe_2(object):
@@ -27,7 +31,7 @@ class recipe_2(object):
         self.results_dict['ch'] =  opt.observation.obs_channel.val 
 
         opt.pipeline.useSignal.val=0
-        
+
         opt.pipeline.split  = 0
         opt.noise.ApplyRandomPRNU.val=1
 
@@ -35,10 +39,9 @@ class recipe_2(object):
         opt.timeline.useLDC.val = 1
         opt.pipeline.useAllen.val =0
         opt.pipeline.fit_gamma.val  =0 #keep zero for uncert on p
-        
+
         noise_type = int(opt.noise.sim_noise_source.val)
-      
-      
+   
         nb_dict = {'rn'            :[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
                 'sn'               :[1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
                 'spat'             :[1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0],                                   
@@ -66,19 +69,17 @@ class recipe_2(object):
         opt.diff = nb_dict['diff'][noise_type]      
         opt.noise_tag = nb_dict['noise_tag'][noise_type]
         opt.color = nb_dict['color'][noise_type]
-                        
-     
+
         start = 0 
         end = int(start + opt.no_real)
         
         if (opt.no_real-start) > 1:
-            exosim_msg ("Monte Carlo selected", 1) 
+            exosim_n_msg ("Monte Carlo selected", 1) 
                            
-        opt = self.run_exosim_n_A(opt)
+        opt = self.run_exosim_nA(opt)
                                       
-        opt.observation_feasibility =1
         if opt.observation_feasibility ==0:      
-           exosim_msg ("Observation not feasible...", opt.diagnostics) 
+           exosim_n_msg ("Observation not feasible...", opt.diagnostics) 
            self.feasibility = 0
         else:
            self.feasibility = 1
@@ -87,48 +88,52 @@ class recipe_2(object):
            ndr_end_frame_number0 = opt.ndr_end_frame_number*1
            frames_per_ndr0 = opt.frames_per_ndr*1
            duration_per_ndr0 = opt.duration_per_ndr*1
-           n_exp0 = opt.n_exp           
+           n_exp0 = opt.n_exp
+           lc0 = opt.lc_original*1   # important this happens at this stage      
                         
            if n_ndr0 > 10000:
 
                opt.pipeline.split = 1
                if opt.diagnostics ==1 :
-                   exosim_msg ('number of NDRs > 10000: using split protocol', opt.diagnostics)
+                   exosim_n_msg ('number of NDRs > 10000: using split protocol', opt.diagnostics)
            else:
                opt.pipeline.split = 0 
-  
+               
+           # #delete    
+           # opt.pipeline.split = 1 
+           
            for j in range(start, end):
                
                if (opt.no_real-start) > 1:
-                   exosim_msg ("", 1)    
-                   exosim_msg ("============= REALIZATION %s ============="%(j), 1)
-                   exosim_msg (opt.lab, 1)                   
-                   exosim_msg ("", 1) 
+                   exosim_n_msg ("", 1)    
+                   exosim_n_msg ("============= REALIZATION %s ============="%(j), 1)
+                   exosim_n_msg (opt.lab, 1)                   
+                   exosim_n_msg ("", 1) 
                
                pp = time.time()
                
-               opt = self.run_exosim_n_A1(opt)  # set QE grid for this realization
-               exosim_msg ("QE variations set", 1) 
-               exosim_msg ("Number of exposures %s"%(n_exp0), 1) 
+               opt = self.run_exosim_nA1(opt)  # set QE grid for this realization
+               exosim_n_msg ("QE variations set", 1) 
+               exosim_n_msg ("Number of exposures %s"%(n_exp0), 1) 
                
-               lc0 = opt.lc_original*1
+               
                
 # =============================================================================
 #  # split simulation into chunks to permit computation - makes no difference to final results    
 # =============================================================================
                if opt.pipeline.split ==1:
               
-                   exosim_msg('Splitting data series into chunks', opt.diagnostics)
+                   exosim_n_msg('Splitting data series into chunks', opt.diagnostics)
                    # uses same QE grid and jitter timeline but otherwise randomoses noise
                    ndrs_per_round = opt.effective_multiaccum*int(5000/opt.multiaccum)  
-                   # ndrs_per_round = opt.effective_multiaccum*int(50/opt.multiaccum)  
+                   # ndrs_per_round = opt.effective_multiaccum*int(500/opt.multiaccum)  
   
                    total_chunks = len(np.arange(0, n_ndr0, ndrs_per_round))
                    
                    idx = np.arange(0, n_ndr0, ndrs_per_round) # list of starting ndrs
                    
                    for i in range(len(idx)):
-                       exosim_msg('=== Chunk %s / %s====='%(i+1, total_chunks), opt.diagnostics)
+                       exosim_n_msg('=== Realisation %s Chunk %s / %s====='%(j, i+1, total_chunks), opt.diagnostics)
                        
                        if idx[i] == idx[-1]:
                            opt.n_ndr = n_ndr0 - idx[i]
@@ -140,17 +145,19 @@ class recipe_2(object):
                        else:
                            opt.n_ndr = idx[i+1]- idx[i]
                            opt.lc_original = lc0[:,idx[i]:idx[i+1]]
+                           print ('idx start......', idx[i])
+                           
                            opt.ndr_end_frame_number = ndr_end_frame_number0[idx[i]: idx[i+1]]
                            opt.frames_per_ndr=  frames_per_ndr0[idx[i]: idx[i+1]]
                            opt.duration_per_ndr = duration_per_ndr0[idx[i]: idx[i+1]]
                   
                        opt.n_exp = int(opt.n_ndr/opt.effective_multiaccum)
-                                   
+                           
                        if i == 0:
                            opt.pipeline.pipeline_auto_ap.val= 1
                            opt.use_external_jitter = 0
                            
-                           opt = self.run_exosim_n_B(opt)
+                           opt = self.run_exosim_nB(opt)
                            opt  = self.run_pipeline_stage_1(opt)  
                            
                            opt.pipeline.pipeline_ap_factor.val= opt.AvBest 
@@ -161,27 +168,27 @@ class recipe_2(object):
                            opt.pipeline.pipeline_auto_ap.val = 0
                            opt.use_external_jitter = 1 # uses the jitter timeline from the first realization
 
-                           opt = self.run_exosim_n_B(opt)
+                           opt = self.run_exosim_nB(opt)
                            opt  = self.run_pipeline_stage_1(opt)
                        
                                   
-                       exosim_msg('Aperture used %s'%(opt.pipeline.pipeline_ap_factor.val), opt.diagnostics)
-                       data0 = opt.pipeline_stage_1.binnedLC
+                       exosim_n_msg('Aperture used %s'%(opt.pipeline.pipeline_ap_factor.val), opt.diagnostics)
+                       binnedLC = opt.pipeline_stage_1.binnedLC
                        data = opt.pipeline_stage_1.opt.data_raw
                                                                   
                        if i ==0:
                            data_stack = data
-                           data_stack0 = data0    
+                           binnedLC_stack = binnedLC    
                        else:
                            data_stack = np.dstack((data_stack,data))
-                           data_stack0 = np.vstack((data_stack0,data0))                  
+                           binnedLC_stack = np.vstack((binnedLC_stack,binnedLC))                  
 
                    aa = data_stack.sum(axis=0)
                    bb = aa.sum(axis=0)
-                   exosim_plot('test_from_sim', opt.diagnostics,
+                   exosim_n_plot('test_from_sim', opt.diagnostics,
                             ydata=bb[opt.effective_multiaccum::opt.effective_multiaccum] )
-                   aa = data_stack0.sum(axis=1)
-                   exosim_plot('test_from_pipeline', opt.diagnostics,
+                   aa = binnedLC_stack.sum(axis=1)
+                   exosim_n_plot('test_from_pipeline', opt.diagnostics,
                                         ydata=aa)                            
 
                    opt.n_ndr  = n_ndr0             
@@ -192,20 +199,22 @@ class recipe_2(object):
                            
                elif opt.pipeline.split ==0:
 
-                   opt  = self.run_exosim_n_B(opt)
+                   opt  = self.run_exosim_nB(opt)
+                   if j==start:  # first realization sets the ap, then the other use the same one
+                       opt.pipeline.pipeline_auto_ap.val= 1
+                   else:
+                       opt.pipeline.pipeline_auto_ap.val= 0
                    opt  = self.run_pipeline_stage_1(opt)
                    if j==start:  # first realization sets the ap, then the other use the same one
-                       opt.use_auto_Ap = 1 
                        opt.pipeline.pipeline_ap_factor.val= opt.AvBest
-                   else:
-                       opt.use_auto_Ap = 0
+
         
-                   data_stack0  = opt.pipeline_stage_1.binnedLC                   
-                   exosim_plot('testvvv', opt.diagnostics,
-                                ydata=data_stack0.sum(axis=1) )  
+                   binnedLC_stack  = opt.pipeline_stage_1.binnedLC                   
+                   exosim_n_plot('testvvv', opt.diagnostics,
+                                ydata=binnedLC_stack.sum(axis=1) )  
                    
                 
-               opt.pipeline_stage_1.binnedLC = data_stack0     
+               opt.pipeline_stage_1.binnedLC = binnedLC_stack     
                opt = self.run_pipeline_stage_2(opt)
                pipeline = opt.pipeline_stage_2
        
@@ -215,7 +224,7 @@ class recipe_2(object):
                else:
                    p_stack = np.vstack((p_stack,p))
                                       
-               exosim_msg ("time to complete realization %s %s"%(j, time.time()-pp ) ,opt.diagnostics)
+               exosim_n_msg ("time to complete realization %s %s"%(j, time.time()-pp ) ,opt.diagnostics)
         
 
                self.results_dict['wl'] = pipeline.binnedWav   
@@ -254,49 +263,48 @@ class recipe_2(object):
            with open(filename, 'wb') as handle:
                   pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
         
-           exosim_msg('Results in %s'%(filename), 1)
+           exosim_n_msg('Results in %s'%(filename), 1)
            self.filename = 'Full_transit_%s_%s.pickle'%(opt.lab, time_tag)
                
            write_record(opt, output_directory, self.filename, opt.params_file_path)
             
-    def run_exosim_n_A(self, opt):
-      exosim_msg('Exosystem', 1)
+    def run_exosim_nA(self, opt):
+      exosim_n_msg('Astroscene', 1)
       astroscene.run(opt)
-      exosim_msg('Telescope', 1)
+      exosim_n_msg('Telescope', 1)
       telescope.run(opt)
-      exosim_msg('Channel', 1)
+      exosim_n_msg('Channel', 1)
       channel.run(opt)
-
-      exosim_msg('Backgrounds', 1)
+      exosim_n_msg('Backgrounds', 1)
       backgrounds.run(opt) 
-      
-            
-      exosim_msg('Detector', 1)
-      detector.run(opt) 
-      exosim_msg('Timeline', 1)
-      timeline.run(opt)
-      exosim_msg('Light curve', 1)
-      light_curve.run(opt)        
-      return opt
+      exosim_n_msg('Detector', 1)
+      detector.run(opt)
+      if opt.observation_feasibility ==1: # if detector does not saturate continue
+          exosim_n_msg('Timeline', 1)
+          timeline.run(opt)
+          exosim_n_msg('Light curve', 1)
+          light_curve.run(opt)     
+          return opt       
+      else: # if detector saturates end sim      
+          return opt
 
-    def run_exosim_n_A1(self, opt):
-      exosim_msg('Systematics', 1)
+    def run_exosim_nA1(self, opt):
+      exosim_n_msg('Systematics', 1)
       systematics.run(opt)               
-      return opt     
-      
-    def run_exosim_n_B(self, opt):
-      exosim_msg('Noise', 1)
-      noise.run(opt)
       return opt
-      
+        
+    def run_exosim_nB(self, opt):
+      exosim_n_msg('Noise', 1)
+      noise.run(opt)                 
+      return opt
+           
     def run_pipeline_stage_1(self, opt):
-      exosim_msg('Pipeline stage 1', 1)
+      exosim_n_msg('Pipeline stage 1', 1)
       opt.pipeline_stage_1 = pipeline_stage_1(opt)   
-      return opt             
-               
+      return opt  
+             
     def run_pipeline_stage_2(self, opt):    
-      exosim_msg('Pipeline stage 2', 1)
+      exosim_n_msg('Pipeline stage 2', 1)
       opt.pipeline_stage_2 = pipeline_stage_2(opt)             
       return opt 
-  
-
+    

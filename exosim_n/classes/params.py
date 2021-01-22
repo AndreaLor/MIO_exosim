@@ -1,5 +1,6 @@
 """
-ExoSim_N
+exosim_n
+
 Params class
 
 """

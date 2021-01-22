@@ -1,5 +1,6 @@
 """
-ExoSim_N
+exosim_n
+
 Planet class
 
 """
@@ -8,7 +9,7 @@ import numpy as np
 from exosim_n.classes import sed
 from astropy import units as u
 from astropy import constants as const
-from exosim_n.lib.exolib import exosim_msg, planck
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, planck
 import os, sys
 from pytransit import QuadraticModel 
 
@@ -34,12 +35,12 @@ class Planet(object):
         
     if opt.exosystem_params.planet_spectrum_model.val == 'simple':
         self.simple_model() 
-        exosim_msg ("simple planet spectrum chosen with fixed CR of %s"%(self.sed.sed[0]), 1)
+        exosim_n_msg ("simple planet spectrum chosen with fixed CR of %s"%(self.sed.sed[0]), 1)
     elif opt.exosystem_params.planet_spectrum_model.val =='file':
         self.file_model()  
-        exosim_msg ("filed planet spectrum chosen", 1)
+        exosim_n_msg ("filed planet spectrum chosen", 1)
     else:
-        exosim_msg('Error1 planet class: no compatible entry for planet_spectrum_model', 1)
+        exosim_n_msg('Error1 planet class: no compatible entry for planet_spectrum_model', 1)
         sys.exit()
 
     
@@ -62,7 +63,7 @@ class Planet(object):
         # plt.plot(wl, star_flux)
         # xxxx
     else:
-        exosim_msg("Error2  planet class: no compatible entry for obs_type", 1)
+        exosim_n_msg("Error2  planet class: no compatible entry for obs_type", 1)
         sys.exit() 
 
 
@@ -72,7 +73,7 @@ class Planet(object):
       try:
           aa = np.loadtxt(filename)
       except IOError:
-          exosim_msg("Error6  planet class: No spectrum file found",  1) 
+          exosim_n_msg("Error6  planet class: No spectrum file found",  1) 
       if aa[:,0][0]< 1e-4: 
           wl=  aa[:,0]*1e6*u.um 
       else:

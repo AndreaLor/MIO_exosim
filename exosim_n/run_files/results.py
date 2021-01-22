@@ -1,5 +1,5 @@
 """
-ExoSim_N
+exosim_n
 Read and display results
 """
 
@@ -15,14 +15,14 @@ import os
 
 def run(results_file):
     
-    exosim_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
-    paths_file ='%s/exosim_n/input_files/exosim_paths.txt'%(exosim_path)
+    exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+    paths_file ='%s/exosim_n/input_files/exosim_n_paths.txt'%(exosim_n_path)
         
     params_to_opt = Params(0, paths_file, 3)  
     paths = params_to_opt.params
     output_directory = paths['output_directory']
     if output_directory == '':  
-        output_directory ='%s/output'%(exosim_path)
+        output_directory ='%s/output'%(exosim_n_path)
       
     results_file =  '%s/%s'%(output_directory, results_file)
  
@@ -49,10 +49,9 @@ def run(results_file):
 
         
     if res_dict['simulation_mode'] == 2:
-        
+
             wl = res_dict['wl']     
             idx = np.argwhere ((res_dict['wl']>=wavlim[0])&(res_dict['wl']<=wavlim[1])).T[0]
-
             wl =res_dict['wl'][idx]
             if res_dict['simulation_realisations'] > 1:   
                 p_stack = res_dict['p_stack'][:,idx]
@@ -75,39 +74,56 @@ def run(results_file):
                 for i in range(p_stack.shape[0]):
                     plt.plot(wl,p_stack[i], '.', color='0.5', alpha =0.2)         
         
-            plt.plot(wl,p_mean, 'o-', color='b', label = 'mean recovered spectrum')
-            plt.errorbar(wl,p_mean,p_std, ecolor='b')
-            plt.plot(cr_wl,cr, '-', color='r', linewidth=2, label='input spectrum')
+            plt.plot(wl,p_mean, 'o-', color='0.5', label = 'mean recovered spectrum')
+            plt.errorbar(wl,p_mean,p_std, ecolor='0.5')
+            f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
+            in_spec = np.array(f(wl))
+            plt.plot(wl,in_spec, 'o-', color='r', linewidth=2, label='input spectrum')
             plt.legend(loc='best')
             plt.ylabel('Contrast ratio')
             plt.xlabel('Wavelength ($\mu m$)')
             plt.grid(True)
-                   
-            r = 4 
-            if ch== 'NIRCam_TSGRISM_F444W' or ch== 'NIRCam_TSGRISM_F322W2':
-                r=2
             
-            p_std[np.isnan(p_std)] = 0
-       
-             
-            z = np.polyfit(wl, p_std*1e6, r)
-                                         
+            plt.figure('Residual bias between mean recover spectrum and input spectrum %s'%(res_dict['time_tag']))
+            f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
+            in_spec = np.array(f(wl))
+            plt.plot(wl,1e6*(p_mean-in_spec), 'o-', color='b', label = 'residual bias')
+            plt.legend(loc='best')
+            plt.ylabel('Residual bias (ppm)')
+            plt.xlabel('Wavelength ($\mu m$)')
+            plt.grid(True) 
+           
+            
+            plt.figure('percent residual bias between mean recover spectrum and input spectrum %s'%(res_dict['time_tag']))
+            f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
+            in_spec = np.array(f(wl))
+            plt.plot(wl,100*(p_mean-in_spec)/in_spec, 'o-', color='b', label = 'residual bias')
+            plt.legend(loc='best')
+            plt.ylabel('Percent difference from input value')
+            plt.xlabel('Wavelength ($\mu m$)')
+            plt.grid(True)
+                     
+            p_std[np.isnan(p_std)] = 0          
             plt.figure('precision %s'%(res_dict['time_tag']))
             plt.ylabel('1 sigma error on transit depth (ppm)')
             plt.xlabel('Wavelength ($\mu m$)')
-            plt.plot(wl, p_std*1e6, 'bo', alpha=0.5)
-            
-            
-    
-            p= np.poly1d(z)
-            # yhat = p(wav)
-            # ybar = sum(p_std)/len(p_std)
-            # SST = sum((p_std - ybar)**2)
-            # SSreg = sum((yhat - ybar)**2)
-            # R2 = SSreg/SST  
-            y =0
-            for i in range (0,r+1):
-                y = y + z[i]*wl**(r-i) 
+            plt.plot(wl, p_std*1e6, 'bo', alpha=0.5)       
+                     
+             
+            if len(wl)>1:
+                r = 4 
+                z = np.polyfit(wl, p_std*1e6, r)
+                p= np.poly1d(z)
+                # yhat = p(wav)
+                # ybar = sum(p_std)/len(p_std)
+                # SST = sum((p_std - ybar)**2)
+                # SSreg = sum((yhat - ybar)**2)
+                # R2 = SSreg/SST  
+                y =0
+                for i in range (0,r+1):
+                    y = y + z[i]*wl**(r-i) 
+            else: 
+                y = p_std*1e6
                 
             plt.figure('precision %s'%(res_dict['time_tag']))
             plt.plot(wl, y, '-', color='r', linewidth=2) 
@@ -168,6 +184,7 @@ def run(results_file):
      
                 
     elif res_dict['simulation_mode'] == 1:
+       
         no_dict =  res_dict['noise_dic']  
   
         for key in no_dict.keys():
@@ -180,9 +197,13 @@ def run(results_file):
             noise_type = key
             wl = no_dict[key]['wl'][idx]
             
+            print (idx, wl)
+          
             if res_dict['simulation_realisations'] == 1:          
                 sig_stack = no_dict[key]['signal_mean_stack'][idx]
                 no_stack = no_dict[key]['signal_std_stack'][idx]
+                
+              
                 if 'fracNoT14_mean' in no_dict[key].keys():
                     fracNoT14_stack = no_dict[key]['fracNoT14_stack'][idx]
             else:
@@ -193,6 +214,10 @@ def run(results_file):
             
             sig_mean = no_dict[key]['signal_mean_mean'][idx]
             no_mean = no_dict[key]['signal_std_mean'][idx]
+            
+            
+            
+            
             if 'fracNoT14_mean' in no_dict[key].keys():
                 fracNoT14_mean = no_dict[key]['fracNoT14_mean'][idx]
     
@@ -242,26 +267,31 @@ def run(results_file):
                 plt.ylim(fracNoT14_mean.min()*np.sqrt(2) - fracNoT14_mean.min()*np.sqrt(2)*0.2
                          , fracNoT14_mean.max()*np.sqrt(2) + fracNoT14_mean.max()*np.sqrt(2)*0.2)
     
-                r = 4 
-                if ch== 'NIRCam_TSGRISM_F444W' or ch== 'NIRCam_TSGRISM_F322W2':
-                    r=2
-
-                z = np.polyfit(wl, fracNoT14_mean*np.sqrt(2), r)
-                p= np.poly1d(z)
-                # yhat = p(wav)
-                # ybar = sum(p_std)/len(p_std)
-                # SST = sum((p_std - ybar)**2)
-                # SSreg = sum((yhat - ybar)**2)
-                # R2 = SSreg/SST  
-                y =0
-                for i in range (0,r+1):
-                    y = y + z[i]*wl**(r-i) 
-                
+                if len(wl)>1:
+                    r = 4 
+                    
+                    z = np.polyfit(wl, fracNoT14_mean*np.sqrt(2), r)
+                    p= np.poly1d(z)
+                    # yhat = p(wav)
+                    # ybar = sum(p_std)/len(p_std)
+                    # SST = sum((p_std - ybar)**2)
+                    # SSreg = sum((yhat - ybar)**2)
+                    # R2 = SSreg/SST  
+                    y =0
+                    for i in range (0,r+1):
+                        y = y + z[i]*wl**(r-i) 
+                        
+                else:
+                    y = fracNoT14_mean*np.sqrt(2)
+                   
+                    
                 plt.plot(wl, y, '-', color='r', linewidth=2) 
                 plt.grid(True)
                          
                 cr = res_dict['input_spec']
                 cr_wl = res_dict['input_spec_wl']
+                
+                print (cr)
  
                 idx0 = np.argwhere ((np.array(cr_wl)>=wavlim[0])&(np.array(cr_wl)<=wavlim[1])).T[0]   
                 cr = cr[idx0]
@@ -269,11 +299,8 @@ def run(results_file):
   
                 f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
                 rand_spec = np.array(f(wl))
-                
-                y = fracNoT14_mean*np.sqrt(2)
-                
-                 
-                
+            
+            
                 for ntransits in [1,10,100]:
                     plt.figure('sample spectrum for %s transit %s'%(ntransits, res_dict['time_tag']))  
                     plt.plot(cr_wl,cr, '-', color='r', linewidth=2, label='input spectrum')
@@ -402,4 +429,4 @@ def run(results_file):
 
 if __name__ == "__main__":     
 
-    run('OOT_SNR_AIRS CH1_GJ 1214 b_2020_12_16_1413_45.pickle')
+    run('Full_transit_NIR Spec_GJ 1214 b_2021_01_22_1047_38.pickle')

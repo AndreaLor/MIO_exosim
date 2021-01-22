@@ -4,8 +4,8 @@ from astropy import constants as const
 from astropy.io import fits
 import os,sys
 from   ..classes import sed 
-from   ..lib import exolib
-from exosim_n.lib.exolib import exosim_msg
+from   ..lib import exosim_n_lib
+from exosim_n.lib.exosim_n_lib import exosim_n_msg
 
 
 class Star():
@@ -14,11 +14,11 @@ class Star():
       
     self.opt = opt
            
-    exosim_msg ("Star temperature:  %s"%(opt.exosystem.star.T), opt.diagnostics)
-    exosim_msg ("Star name %s, dist %s, radius %s"%(opt.exosystem.star.name, opt.exosystem.star.d, opt.exosystem.star.R), opt.diagnostics)  
+    exosim_n_msg ("Star temperature:  %s"%(opt.exosystem.star.T), opt.diagnostics)
+    exosim_n_msg ("Star name %s, dist %s, radius %s"%(opt.exosystem.star.name, opt.exosystem.star.d, opt.exosystem.star.R), opt.diagnostics)  
    
-    exosim_path =  opt.exosim_path
-    databases_dir = '%s/archive'%(exosim_path)   
+    exosim_n_path =  opt.exosim_n_path
+    databases_dir = '%s/archive'%(exosim_n_path)   
     
     
     cond=0
@@ -29,7 +29,7 @@ class Star():
                 cond=1
                 break
     if cond==0:
-        exosim_msg('Error Star 1: database not found')   
+        exosim_n_msg('Error Star 1: database not found')   
         sys.exit()
     self.sed_folder = '%s/%s'%(databases_dir, dirc_name)
     
@@ -40,7 +40,7 @@ class Star():
     if opt.exosystem_params.star_spectrum_model.val == 'simple':
           ph_wl, ph_sed = self.get_simple_spectrum (np.linspace(0.4,12.0,int(1e6))*u.um, 		
     			    self.star_temperature)			   
-          exosim_msg ("Using black body spectrum for star...", opt.diagnostics)
+          exosim_n_msg ("Using black body spectrum for star...", opt.diagnostics)
     else:      
           # ph_wl, ph_sed = self.read_phoenix_spectrum()  
           ph_wl, ph_sed = self.read_phoenix_spectrum_interp() 
@@ -51,12 +51,12 @@ class Star():
     else  :        
         ph_sed  *=  ((opt.exosystem.star.R).to(u.m)/(opt.exosystem.star.d).to(u.m))**2 		      # [W/m^2/mu]
     
-    exosim_msg("star check 2: %s"%ph_sed.max(), self.opt.diagnostics)
+    exosim_n_msg("star check 2: %s"%ph_sed.max(), self.opt.diagnostics)
     self.sed = sed.Sed(ph_wl, ph_sed)
     
           
   def read_phoenix_spectrum(self):
-    exosim_msg ("Star... star_temperature %s, star_logg %s, star_f_h %s"%(self.star_temperature, self.star_logg, self.star_f_h) , self.opt.diagnostics)
+    exosim_n_msg ("Star... star_temperature %s, star_logg %s, star_f_h %s"%(self.star_temperature, self.star_logg, self.star_f_h) , self.opt.diagnostics)
 
     if self.star_temperature.value >= 2400:
         t0 = np.round(self.star_temperature,-2)/100.
@@ -73,10 +73,10 @@ class Star():
                 cond = 1
             elif filename == 'lte0%s-%s-0.0a+0.0.BT-Settl.spec.fits.gz'%(t0.value, logg0):
                 ph_file = '%s/%s'%(self.sed_folder, filename)
-                exosim_msg ("Star file used:  %s"%(ph_file) , self.opt.diagnostics)
+                exosim_n_msg ("Star file used:  %s"%(ph_file) , self.opt.diagnostics)
                 cond = 1
     if cond==0:
-        exosim_msg ("Error Star 2:  no star file found", 1)
+        exosim_n_msg ("Error Star 2:  no star file found", 1)
         sys.exit()
                  
     with fits.open(ph_file) as hdu:
@@ -93,7 +93,7 @@ class Star():
     print (wl)
     print (sed)
     ccc
-    exosim_msg("star check 1: %s"%sed.max(), self.opt.diagnostics)
+    exosim_n_msg("star check 1: %s"%sed.max(), self.opt.diagnostics)
     return wl, sed
     
   def get_simple_spectrum(self, wl,  star_temperature):
@@ -113,7 +113,7 @@ class Star():
       if J_mag == '':
           mag_band_list =['K', 'K']
       if J_mag == '' and K_mag == '':
-          exosim_msg('Star class error: no J or K magnitude entered')
+          exosim_n_msg('Star class error: no J or K magnitude entered')
           sys.exit()
           
       sed_list =[] # take an average of J and K normalisations
@@ -124,7 +124,7 @@ class Star():
               J_mag = 8.0
           
 
-      exosim_msg ("normalizing stellar spectrum",  self.opt.diagnostics)
+      exosim_n_msg ("normalizing stellar spectrum",  self.opt.diagnostics)
         
       wl = wl.value
       for mag_band in mag_band_list:
@@ -170,7 +170,7 @@ class Star():
 
   def read_phoenix_spectrum_interp(self):
 
-    exosim_msg ("Star... star_temperature %s, star_logg %s, star_f_h %s"%(self.star_temperature, self.star_logg, self.star_f_h) , self.opt.diagnostics)
+    exosim_n_msg ("Star... star_temperature %s, star_logg %s, star_f_h %s"%(self.star_temperature, self.star_logg, self.star_f_h) , self.opt.diagnostics)
    
     if self.star_temperature.value >= 2400:
         t0 = np.round(self.star_temperature,-2)/100.
@@ -215,7 +215,7 @@ class Star():
                         
     if cond_1 == 1 and cond_2 == 0: 
         
-        exosim_msg ("interpolating spectra by temperature only", self.opt.diagnostics)
+        exosim_n_msg ("interpolating spectra by temperature only", self.opt.diagnostics)
   
         wav_t0_logg0, flux_t0_logg0 = self.open_Phoenix(t0,logg0, self.star_f_h, self.sed_folder)
         wav_t1_logg0, flux_t1_logg0 = self.open_Phoenix(t1,logg0, self.star_f_h, self.sed_folder)
@@ -230,14 +230,14 @@ class Star():
         star_final_sed = sed_final
         star_final_wl = sed_t0_logg0.wl
         
-        # exosim_plot('temperature interpolation', self.opt.diagnostics, xdata = wav_t0_logg0, ydata = flux_t0_logg0, marker ='r-')
-        # exosim_plot('temperature interpolation', self.opt.diagnostics, xdata = wav_t1_logg0, ydata = flux_t1_logg0, marker ='b-')
-        # exosim_plot('temperature interpolation', self.opt.diagnostics, xdata = star_final_wl, ydata = star_final_sed, marker ='g-')
+        # exosim_n_plot('temperature interpolation', self.opt.diagnostics, xdata = wav_t0_logg0, ydata = flux_t0_logg0, marker ='r-')
+        # exosim_n_plot('temperature interpolation', self.opt.diagnostics, xdata = wav_t1_logg0, ydata = flux_t1_logg0, marker ='b-')
+        # exosim_n_plot('temperature interpolation', self.opt.diagnostics, xdata = star_final_wl, ydata = star_final_sed, marker ='g-')
 
       
     if cond_1 == 1 and cond_2 == 1:
         
-        exosim_msg ("interpolating spectra by temperature and logg", self.opt.diagnostics)
+        exosim_n_msg ("interpolating spectra by temperature and logg", self.opt.diagnostics)
    
         #interp temp at logg0
         wav_t0_logg0, flux_t0_logg0 = self.open_Phoenix(t0,logg0, self.star_f_h, self.sed_folder)
@@ -252,11 +252,11 @@ class Star():
         sed_logg0 = sed.Sed(wav_t0_logg0, sed_)     
         box = 1000
         bbox = np.ones(box)/box
-        # exosim_plot('temperature interpolation logg0', self.opt.diagnostics, xdata = wav_t0_logg0, \
+        # exosim_n_plot('temperature interpolation logg0', self.opt.diagnostics, xdata = wav_t0_logg0, \
         #              ydata = np.convolve(flux_t0_logg0, bbox,'same'), marker ='r-')
-        # exosim_plot('temperature interpolation logg0', self.opt.diagnostics, xdata = wav_t1_logg0, \
+        # exosim_n_plot('temperature interpolation logg0', self.opt.diagnostics, xdata = wav_t1_logg0, \
         #              ydata = np.convolve(flux_t1_logg0, bbox,'same'), marker ='b-')
-        # exosim_plot('temperature interpolation logg0', self.opt.diagnostics, xdata = sed_logg0.wl, \
+        # exosim_n_plot('temperature interpolation logg0', self.opt.diagnostics, xdata = sed_logg0.wl, \
         #              ydata = np.convolve(sed_logg0.sed, bbox,'same'), marker ='g-')
         
 
@@ -274,11 +274,11 @@ class Star():
         
         box = 100
         bbox = np.ones(box)/box
-        # exosim_plot('temperature interpolation logg1', self.opt.diagnostics, xdata = wav_t0_logg1, \
+        # exosim_n_plot('temperature interpolation logg1', self.opt.diagnostics, xdata = wav_t0_logg1, \
         #              ydata = np.convolve(flux_t0_logg1, bbox,'same'), marker ='r-')
-        # exosim_plot('temperature interpolation logg1', self.opt.diagnostics, xdata = wav_t1_logg1, \
+        # exosim_n_plot('temperature interpolation logg1', self.opt.diagnostics, xdata = wav_t1_logg1, \
         #              ydata = np.convolve(flux_t1_logg1, bbox,'same'), marker ='b-')
-        # exosim_plot('temperature interpolation logg1', self.opt.diagnostics, xdata = sed_logg1.wl, \
+        # exosim_n_plot('temperature interpolation logg1', self.opt.diagnostics, xdata = sed_logg1.wl, \
         #              ydata = np.convolve(sed_logg1.sed, bbox,'same'), marker ='g-')
         
   
@@ -297,17 +297,17 @@ class Star():
         
         box = 100
         bbox = np.ones(box)/box
-        # exosim_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_logg0.wl, \
+        # exosim_n_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_logg0.wl, \
         #              ydata = np.convolve(sed_logg0.sed, bbox,'same'), marker ='r-')
-        # exosim_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_logg1.wl, \
+        # exosim_n_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_logg1.wl, \
         #              ydata = np.convolve(sed_logg1.sed, bbox,'same'), marker ='b-')
-        # exosim_plot('interpolation between logg', self.opt.diagnostics, xdata = star_final_wl, \
+        # exosim_n_plot('interpolation between logg', self.opt.diagnostics, xdata = star_final_wl, \
         #              ydata = np.convolve(star_final_sed, bbox,'same'), marker ='g-') 
   
             
     if cond_1 == 0 and cond_2 == 1:
         
-        exosim_msg ("interpolating spectra by logg only", self.opt.diagnostics)
+        exosim_n_msg ("interpolating spectra by logg only", self.opt.diagnostics)
    
         #interp logg at t0
         wav_t0_logg0, flux_t0_logg0 = self.open_Phoenix(t0,logg0, self.star_f_h, self.sed_folder)
@@ -327,11 +327,11 @@ class Star():
         
         box = 100
         bbox = np.ones(box)/box
-        # exosim_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_t0_logg0.wl, \
+        # exosim_n_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_t0_logg0.wl, \
         #              ydata = np.convolve(sed_t0_logg0.sed, bbox,'same'), marker ='r-')
-        # exosim_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_t0_logg1.wl, \
+        # exosim_n_plot('interpolation between logg', self.opt.diagnostics, xdata = sed_t0_logg1.wl, \
         #              ydata = np.convolve(sed_t0_logg1.sed, bbox,'same'), marker ='b-')
-        # exosim_plot('interpolation between logg', self.opt.diagnostics, xdata = star_final_wl, \
+        # exosim_n_plot('interpolation between logg', self.opt.diagnostics, xdata = star_final_wl, \
                         # ydata = np.convolve(star_final_sed, bbox,'same'), marker ='g-') 
             
     if cond_1 == 0 and cond_2 == 0:
@@ -352,10 +352,10 @@ class Star():
                 cond = 1
             elif filename == 'lte0%s-%s-0.0a+0.0.BT-Settl.spec.fits.gz'%(t0, logg0):
                 ph_file = '%s/%s'%(sed_folder, filename)
-                exosim_msg ("Star file used:  %s"%(ph_file) , self.opt.diagnostics)
+                exosim_n_msg ("Star file used:  %s"%(ph_file) , self.opt.diagnostics)
                 cond = 1
     if cond==0:
-        exosim_msg ("Error Star 2:  no star file found", 1)
+        exosim_n_msg ("Error Star 2:  no star file found", 1)
         sys.exit()    
     else:
         with fits.open(ph_file) as hdu:

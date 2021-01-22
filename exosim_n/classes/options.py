@@ -1,5 +1,5 @@
 """
-ExoSim_N
+exosim_n
 Options class
  
 """
@@ -52,7 +52,7 @@ class Options(object):
     
         self.opt = self.parser(ET.parse(filename).getroot())
     
-        exosim_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+        exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
      
         self.opt = self.parser(ET.parse(filename).getroot())
         
@@ -70,15 +70,7 @@ class Options(object):
                             self.opt.common.wl_max.val.value,
                             wl_delta.value)* wl_delta.unit))
         
-            # if default_path:
-            #   setattr(self.opt, "__path__", default_path)
-           
-            # elif hasattr(self.opt.common, "ConfigPath"):
-            #   setattr(self.opt, "__path__", 
-            #         os.path.expanduser(self.opt.common.ConfigPath().replace('__path__', __path__[0])))
-            # else:
-            #   exosim_error("Path to config files not defined")
-            
+ 
             
             self.validate_options()
             # self.calc_metaoptions()

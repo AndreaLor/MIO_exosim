@@ -1,6 +1,6 @@
 import numpy as np
 import sys 
-from ..lib import exolib
+from ..lib import exosim_n_lib
 
 
 class Sed(object):
@@ -29,6 +29,6 @@ class Sed(object):
 	wl: array
 	    wavelength
     """
-    self.wl, self.sed = exolib.rebin(wl, self.wl, self.sed)
+    self.wl, self.sed = exosim_n_lib.rebin(wl, self.wl, self.sed)
     
     

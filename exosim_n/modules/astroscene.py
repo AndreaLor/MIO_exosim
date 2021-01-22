@@ -1,13 +1,13 @@
 """
-ExoSim_N
+exosim_n
 Astroscene 
 
 """
 
 from exosim_n.classes.star    import Star
 from exosim_n.classes.planet  import Planet
-from exosim_n.lib.exolib import exosim_msg
-from exosim_n.lib import exolib
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
+from exosim_n.lib import exosim_n_lib, astroscene_lib
 from astropy import units as u
  
 class model_star_class():
@@ -32,6 +32,7 @@ class model_exosystem():
         self.R = opt.model_exosystem.R_p.val
         self.M = opt.model_exosystem.M_p.val
         self.T = opt.model_exosystem.T_p.val
+        self.T14 = opt.model_exosystem.T14.val
         self.name = opt.model_exosystem.planet_name.val
         self.albedo = opt.model_exosystem.albedo.val
         self.star = model_star_class(opt)
@@ -58,6 +59,20 @@ def run(opt):
         opt.model_exosystem.d.val = opt.input_params['user_defined_d']*u.pc
         opt.model_exosystem.T_s.val = opt.input_params['user_defined_T_s']*u.K
         opt.model_exosystem.Z.val = opt.input_params['user_defined_Z']
+        
+        if opt.input_params['user_defined_T14'] == '':
+            pl_inc = (opt.input_params['user_defined_i']*u.deg).to(u.rad)
+            pl_a  =(opt.input_params['user_defined_a']*u.au).to(u.m)
+            pl_P  =(opt.input_params['user_defined_P']*u.day).to(u.hr)
+            pl_Rp = (opt.input_params['user_defined_R_p']*u.Rjup).to(u.m)
+            pl_Rs = (opt.input_params['user_defined_R_s']*u.Rsun).to(u.m)         
+            T14 = astroscene_lib.calc_T14(pl_inc, pl_a, pl_P, pl_Rp, pl_Rs)
+            opt.model_exosystem.T14.val = T14
+            exosim_n_msg(f'No user defined T14: calculating T14 estimate...{T14}', opt.diagnostics)
+
+        else:
+            opt.model_exosystem.T14.val = opt.input_params['user_defined_T14']*u.hr
+
         opt.model_exosystem.logg.val = opt.input_params['user_defined_logg']
         opt.model_exosystem.star_name.val = opt.input_params['user_defined_star_name']
            
@@ -66,29 +81,26 @@ def run(opt):
         opt.model_exosystem.K_mag.val = opt.input_params['user_defined_K_mag']
         
         if  opt.input_params['user_defined_logg'] == '':
-            opt.model_exosystem.logg.val = exolib.calc_logg(opt.model_exosystem.M_s.val,opt.model_exosystem.R_s.val)[1]
+            opt.model_exosystem.logg.val = exosim_n_lib.calc_logg(opt.model_exosystem.M_s.val,opt.model_exosystem.R_s.val)[1]
 
         
-  exosim_msg('Exosystem parameters \n---------------------', 1)
+  exosim_n_msg('Exosystem parameters \n---------------------', 1)
   for key in vars(opt.model_exosystem).keys():
         if hasattr(vars(opt.model_exosystem)[key] , 'val'):
             print (key, vars(opt.model_exosystem)[key].val) 
-  exosim_msg('---------------------', 1)
+  exosim_n_msg('---------------------', 1)
  
   opt.exosystem = model_exosystem(opt) # read in the xml file values
       
   star = Star(opt)
   
-  exosim_msg('exosystem check 1 %s'%(star.sed.sed.max()), opt.diagnostics)  
+  exosim_n_msg('exosystem check 1 %s'%(star.sed.sed.max()), opt.diagnostics)  
   
   planet = Planet(opt, opt.exosystem)
-  planet.calc_T14((planet.planet.i).to(u.rad),
-		 (planet.planet.a).to(u.m), 
-		 (planet.planet.P).to(u.s), 
-		 (planet.planet.R).to(u.m), 
-		 (planet.planet.star.R).to(u.m))  
+  planet.T14 = opt.model_exosystem.T14.val
+
              
-  exosim_msg('T14 %s'%(planet.t14), 1)
+  exosim_n_msg('T14 %s'%(planet.T14), 1)
   # xxxxx
   
  

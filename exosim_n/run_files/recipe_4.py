@@ -1,12 +1,14 @@
 '''
-ExoSim_N
+
+exosim_n
+
 Recipe 1 - OOT simulation returning stellar signal and noise per spectral bin without Allan analysis
 
 '''
 from exosim_n.modules import astroscene, telescope, channel, detector, backgrounds, timeline, noise, light_curve, systematics
 
-from exosim_n.EDaRP.runEDaRP import pipeline_stage_1, pipeline_stage_2
-from exosim_n.lib.exolib import exosim_msg, write_record
+from exosim_n.pipeline.run_pipeline  import pipeline_stage_1, pipeline_stage_2
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, write_record
 from astropy import units as u
 from datetime import datetime
 import pickle, os
@@ -39,7 +41,7 @@ class recipe_4(object):
         opt.pipeline.useAllen.val =0
         opt.timeline.use_T14.val=0
         opt.timeline.obs_time.val = 0*u.hr # 0 means n_exp overides obs_time
-        opt.timeline.n_exp.val = 1000.0 # uses 1000 exposures 
+        opt.timeline.n_exp.val = 100.0 # uses 1000 exposures 
         
      
         noise_type = int(opt.noise.sim_noise_source.val)
@@ -76,21 +78,19 @@ class recipe_4(object):
                         
         self.noise_dict[nb_dict['noise_tag'][noise_type]] ={}
         
-        exosim_msg ("Noise type: %s"%(nb_dict['noise_tag'][noise_type]), 1) 
+        exosim_n_msg ("Noise type: %s"%(nb_dict['noise_tag'][noise_type]), 1) 
   
         start = 0 
         end = int(start + opt.no_real)
-        
-        opt.ap_f = []
         
         for j in range(start, end):
             
             
             if (opt.no_real-start) > 1:
-                   exosim_msg ("", 1)    
-                   exosim_msg ("============= REALIZATION %s ============="%(j), 1)
-                   exosim_msg (opt.lab, 1)                   
-                   exosim_msg ("", 1)  
+                   exosim_n_msg ("", 1)    
+                   exosim_n_msg ("============= REALIZATION %s ============="%(j), 1)
+                   exosim_n_msg (opt.lab, 1)                   
+                   exosim_n_msg ("", 1)  
             
             opt = self.run_exosim_n_A(opt)
             opt = self.run_exosim_n_A1(opt)
@@ -98,7 +98,7 @@ class recipe_4(object):
             opt.observation_feasibility = 1
             
             if opt.observation_feasibility ==0:      
-                exosim_msg ("Observation not feasible...", opt.diagnostics) 
+                exosim_n_msg ("Observation not feasible...", opt.diagnostics) 
                 self.feasibility = 0
             else:
                 self.feasibility = 1
@@ -109,9 +109,7 @@ class recipe_4(object):
                     opt = self.run_pipeline_stage_1(opt)       
                     opt = self.run_pipeline_stage_2(opt)              
                     self.pipeline = opt.pipeline_stage_2
-                    
-                    opt.ap_f.append(opt.pipeline.pipeline_ap_factor.val)
-                    
+                                        
                     self.noise_dict[opt.noise_tag]['wl'] = self.pipeline.binnedWav
                     self.results_dict['input_spec'] = opt.cr
                     self.results_dict['input_spec_wl'] = opt.cr_wl            
@@ -174,7 +172,7 @@ class recipe_4(object):
                         with open(filename, 'wb') as handle:
                             pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
                         
-                        exosim_msg('Results in %s'%(filename), 1)
+                        exosim_n_msg('Results in %s'%(filename), 1)
                         self.filename = 'OOT_SNR_%s_%s.pickle'%(opt.lab, time_tag)
                                 
                 
@@ -187,42 +185,43 @@ class recipe_4(object):
   
                             
     def run_exosim_n_A(self, opt):
-      exosim_msg('Exosystem', 1)
+      exosim_n_msg('Exosystem', 1)
       astroscene.run(opt)
-      exosim_msg('Telescope', 1)
+      exosim_n_msg('Telescope', 1)
       telescope.run(opt)
-      exosim_msg('Channel', 1)
+      exosim_n_msg('Channel', 1)
       channel.run(opt)
 
-      exosim_msg('Backgrounds', 1)
+      exosim_n_msg('Backgrounds', 1)
       backgrounds.run(opt) 
       
             
-      exosim_msg('Detector', 1)
+      exosim_n_msg('Detector', 1)
       detector.run(opt) 
-      exosim_msg('Timeline', 1)
+      xxx
+      exosim_n_msg('Timeline', 1)
       timeline.run(opt)
-      exosim_msg('Light curve', 1)
+      exosim_n_msg('Light curve', 1)
       light_curve.run(opt)        
       return opt
 
     def run_exosim_n_A1(self, opt):
-      exosim_msg('Systematics', 1)
+      exosim_n_msg('Systematics', 1)
       systematics.run(opt)               
       return opt     
       
     def run_exosim_n_B(self, opt):
-      exosim_msg('Noise', 1)
+      exosim_n_msg('Noise', 1)
       noise.run(opt)
       return opt
       
     def run_pipeline_stage_1(self, opt):
-      exosim_msg('Pipeline stage 1', 1)
+      exosim_n_msg('Pipeline stage 1', 1)
       opt.pipeline_stage_1 = pipeline_stage_1(opt)   
       return opt             
                
     def run_pipeline_stage_2(self, opt):    
-      exosim_msg('Pipeline stage 2', 1)
+      exosim_n_msg('Pipeline stage 2', 1)
       opt.pipeline_stage_2 = pipeline_stage_2(opt)             
       return opt 
   

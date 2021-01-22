@@ -4,16 +4,15 @@ Created on Tue May 15 10:23:25 2018
 
 @author: Subhajit Sarkar
 
-Phase A ExoSim pipeline
+exosim_n pipeline
 """
  
-
 import numpy as np
-from exosim_n.EDaRP import calibration, jitterdecorr, binning, detrend
-from exosim_n.lib.exolib import exosim_msg, exosim_plot
-from astropy import units as u  
- 
+from exosim_n.pipeline import calibration, jitterdecorr, binning, detrend
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
+from astropy import units as u 
 
+ 
 class pipeline_stage_1():
        
     def __init__(self, opt):
@@ -50,19 +49,20 @@ class pipeline_stage_1():
                 self.subDark()             
                 
         if opt.noise.ApplyPRNU.val ==1: 
-            exosim_msg ("mean and standard deviation of qe grid %s %s"%(opt.qe_grid.mean(), opt.qe_grid.std()), opt.diagnostics)
-               
+            exosim_n_msg ("mean and standard deviation of qe grid %s %s"%(opt.qe_grid.mean(), opt.qe_grid.std()), opt.diagnostics)   
             self.flatField()
-             
+        
+        print ()    
         if opt.background.EnableZodi.val ==1 or opt.background.EnableEmission.val ==1: 
-            if opt.diff==0:                  
+            if opt.diff==1 or opt.diff==0:                  
                 self.subBackground()
-        exosim_plot('sample NDR image', opt.diagnostics,
+            
+        exosim_n_plot('sample NDR image', opt.diagnostics,
                      image =True, image_data=self.opt.data[...,1])
        
         self.doUTR() # lose astropy units at this step
       
-        exosim_plot('sample exposure image', opt.diagnostics,
+        exosim_n_plot('sample exposure image', opt.diagnostics,
                      image =True, image_data=self.opt.data[...,1]) 
         
         
@@ -70,14 +70,17 @@ class pipeline_stage_1():
         self.badCorr()    # exp image obtained here     
    
         if opt.noise.EnableSpatialJitter.val  ==1 or opt.noise.EnableSpectralJitter.val  ==1 :
-            exosim_msg ("Decorrelating pointing jitter...", opt.diagnostics)
-            self.jitterDecorr()
+            if opt.channel.is_spec.val == True:
+                exosim_n_msg ("Decorrelating pointing jitter...", opt.diagnostics)
+                self.jitterDecorr()
             
         if opt.pipeline.pipeline_apply_mask.val==1:
             if opt.pipeline.pipeline_auto_ap.val == 1: 
                 self.autoSizeAp()            
-            
-        self.extractSpec()
+        if opt.channel.is_spec.val == True:   
+            self.extractSpec()
+        else:
+            self.extractPhot()
  
  
  
@@ -126,7 +129,7 @@ class pipeline_stage_1():
             self.signal = calibration.fluxconvert(self.signal, self.metadata)
 
     def autoSizeAp(self):     
-        F = self.opt.channel.wfno.val
+        F = self.opt.channel.wfno_y.val
         wl_max = self.opt.channel.pipeline_params.wavrange_hi.val 
         wl_min = self.opt.channel.pipeline_params.wavrange_lo.val
         wl = self.opt.cr_wl.value   
@@ -166,57 +169,89 @@ class pipeline_stage_1():
                 sample =  self.opt.data[...,0:x0]
                 
             
-        exosim_msg("SAMPLE SHAPE %s %s %s"%(sample.shape), self.opt.diagnostics)
+        exosim_n_msg("SAMPLE SHAPE %s %s %s"%(sample.shape), self.opt.diagnostics)
         pix_size = (self.opt.channel.detector_pixel.pixel_size.val).to(u.um).value
         y_width = self.opt.data.shape[0] * pix_size
         testApFactorMax = int(int(y_width/2.) / (F*wl_max))
         if (testApFactorMax*F*wl_max/pix_size) + 1 >= self.opt.data.shape[0]/2:
             testApFactorMax = int( ((self.opt.data.shape[0]/2)-1)*pix_size/(F*wl_max) )
 
-        ApList = np.arange(1.0,testApFactorMax+1,1.0)     
-        exosim_msg ("maximum test ap factor %s"%(testApFactorMax), self.opt.diagnostics)
-        for i in ApList:
-            testApFactor = 1.0*i  
-            exosim_msg("test ApFactor %s"%(testApFactor), self.opt.diagnostics)
-            self.extractSample = binning.extractSpec(sample, self.opt, self.opt.diff, testApFactor, 2) 
- 
-            self.extractSample.applyMask_extract_1D()
-            spectra = self.extractSample.spectra
-            self.extractSample.binSpectra()   
-            binnedLC = self.extractSample.binnedLC   
-            wl =  self.extractSample.binnedWav
-            SNR = binnedLC.mean(axis =0)/binnedLC .std(axis =0)
-             
-            if i == ApList[0] :
-                SNR_stack = SNR
-            else:
-                SNR_stack = np.vstack((SNR_stack, SNR))
+        ApList = np.arange(1.0,testApFactorMax+1,1.0) 
+  
+        exosim_n_msg ("maximum test ap factor %s"%(testApFactorMax), self.opt.diagnostics)
+        if self.opt.channel.is_spec.val == True:
+            for i in ApList:
+                testApFactor = 1.0*i  
+                exosim_n_msg("test ApFactor %s"%(testApFactor), self.opt.diagnostics)
+                self.extractSample = binning.extractSpec(sample, self.opt, self.opt.diff, testApFactor, 2) 
+     
+                self.extractSample.applyMask_extract_1D()
+                spectra = self.extractSample.spectra
+                self.extractSample.binSpectra()   
+                binnedLC = self.extractSample.binnedLC   
+                wl =  self.extractSample.binnedWav
+                SNR = binnedLC.mean(axis =0)/binnedLC .std(axis =0)
+                 
+                if i == ApList[0] :
+                    SNR_stack = SNR
+                else:
+                    SNR_stack = np.vstack((SNR_stack, SNR))
+                
+                exosim_n_plot('test aperture SNR', self.opt.diagnostics, 
+                            xdata=wl,ydata=SNR, label = testApFactor)   
             
-            exosim_plot('test aperture SNR', self.opt.diagnostics, 
-                        xdata=wl,ydata=SNR, label = testApFactor)   
-        
-        idx = np.argwhere( (wl>=wl_min) & (wl<= wl_max))
-        SNR_stack = SNR_stack[:,idx][...,0]
-        
-        best=[]
-        for i in range(SNR_stack.shape[1]):
-            aa = SNR_stack[:,i]
-#            exosim_msg i, np.argmax(aa), ApList[np.argmax(aa)]
-            best.append(ApList[np.argmax(aa)])          
-        wl=  wl[idx].T[0]
+            idx = np.argwhere( (wl>=wl_min) & (wl<= wl_max))
+            SNR_stack = SNR_stack[:,idx][...,0]
+            
+            best=[]
+            for i in range(SNR_stack.shape[1]):
+                aa = SNR_stack[:,i]
+    #            exosim_n_msg i, np.argmax(aa), ApList[np.argmax(aa)]
+                best.append(ApList[np.argmax(aa)])          
+            wl=  wl[idx].T[0]
+    
+            exosim_n_plot('highest SNR aperture vs wavelength', self.opt.diagnostics,
+                         xdata=wl, ydata=best, marker='bo-')      
+            
+            AvBest = np.round(np.mean(best),0)
+            exosim_n_msg ("average best aperture factor %s"%(AvBest), self.opt.diagnostics)
+            self.opt.AvBest = AvBest
+            self.ApFactor = AvBest
+            self.opt.pipeline.pipeline_ap_factor.val = self.ApFactor
+            
+        elif self.opt.channel.is_spec.val == False:
+            SNR_stack = []
+            ApList0=[]
+            SNR0 =0
+            for i in ApList:
+                testApFactor = 1.0*i  
+                exosim_n_msg("test ApFactor %s"%(testApFactor), 1)
+                self.extractSample = binning.extractPhot(sample, self.opt, self.opt.diff, testApFactor, 'test') 
+     
+                binnedLC = self.extractSample.binnedLC 
+                SNR = binnedLC.mean(axis =0)/binnedLC .std(axis =0)
+                ApList0.append(testApFactor)
+                SNR_stack.append(SNR)
+                exosim_n_msg("SNR %s"%(SNR[0]), 1)
+                if SNR < SNR0:       
+                    break
+                else:
+                    SNR0 = SNR*1
+                  
+            exosim_n_plot('photometric test aperture SNR', self.opt.diagnostics, 
+                        xdata=ApList0,ydata=SNR_stack)   
+            SNR_stack = np.array(SNR_stack)
+            idx = np.argmax(SNR_stack)
+      
+            self.opt.AvBest = ApList0[idx]
+            self.ApFactor = ApList0[idx]
+            self.opt.pipeline.pipeline_ap_factor.val = self.ApFactor
+            exosim_n_msg ('Best Ap factor %s'%(self.opt.AvBest), 1)
 
-        exosim_plot('highest SNR aperture vs wavelength', self.opt.diagnostics,
-                     xdata=wl, ydata=best, marker='bo-')      
-        
-        AvBest = np.round(np.mean(best),0)
-        exosim_msg ("average best aperture factor %s"%(AvBest), self.opt.diagnostics)
-        self.opt.AvBest = AvBest
-        self.ApFactor = AvBest
-        self.opt.pipeline.pipeline_ap_factor.val = self.ApFactor
- 
+     
     def extractSpec(self):
         
-        exosim_msg ("extracting 1 D spectra....", self.opt.diagnostics)
+        exosim_n_msg ("extracting 1 D spectra....", self.opt.diagnostics)
         #==============================================================================
         # 1) initialise class objects a) noisy data, b) noiseless data if used, c) extraction of n_pix per bin
         #==============================================================================
@@ -237,17 +272,17 @@ class pipeline_stage_1():
         if self.opt.pipeline.pipeline_apply_mask.val==1:             
             
             # a) noisy data   
-            exosim_msg ("applying mask and extracting 1D spectrum from noisy data", self.opt.diagnostics)
+            exosim_n_msg ("applying mask and extracting 1D spectrum from noisy data", self.opt.diagnostics)
             self.extractSpec.applyMask_extract_1D()
            
             # b) noiseless data if selected            
             if self.opt.pipeline.useSignal.val == 1:
-                exosim_msg ("applying mask and extracting 1D spectrum from signal only data", self.opt.diagnostics)
+                exosim_n_msg ("applying mask and extracting 1D spectrum from signal only data", self.opt.diagnostics)
                 self.extractSpec_signal.applyMask_extract_1D()
            
             # c) sample data to find n_pix per bin
-            exosim_msg ("applying mask and extracting 1D spectrum to find n_pix per bin" , self.opt.diagnostics)                
-            exosim_msg ("extracting 1 D spectra for pixel in bin test",  self.opt.diagnostics)
+            exosim_n_msg ("applying mask and extracting 1D spectrum to find n_pix per bin" , self.opt.diagnostics)                
+            exosim_n_msg ("extracting 1 D spectra for pixel in bin test",  self.opt.diagnostics)
             self.extractSpec_nPix.applyMask_extract_1D() 
             
             # self.low_SNR_flag = self.extractSpec.low_SNR_flag
@@ -259,22 +294,22 @@ class pipeline_stage_1():
         else:
             
             # a) noisy data 
-            exosim_msg ("NOT applying mask and extracting 1D spectrum from noisy data", self.opt.diagnostics)
+            exosim_n_msg ("NOT applying mask and extracting 1D spectrum from noisy data", self.opt.diagnostics)
             self.extractSpec.extract1DSpectra()
             
             # b) noiseless data if selected
             if self.opt.pipeline.useSignal.val == 1:  
-                exosim_msg ("NOT applying mask and extracting 1D spectrum from signal only data", self.opt.diagnostics)
+                exosim_n_msg ("NOT applying mask and extracting 1D spectrum from signal only data", self.opt.diagnostics)
                 self.extractSpec_signal.extract1DSpectra()            
             
             # c) sample data to find n_pix per bin  
-            exosim_msg ("NOT applying mask and extracting 1D spectrum to find n_pix per bin", self.opt.diagnostics)
+            exosim_n_msg ("NOT applying mask and extracting 1D spectrum to find n_pix per bin", self.opt.diagnostics)
             self.extractSpec_nPix.extract1DSpectra()          
          
             
 
         self.nPix_1 =  self.extractSpec_nPix.spectra[0] 
-        exosim_plot('n_pix per pixel column', self.opt.diagnostics, 
+        exosim_n_plot('n_pix per pixel column', self.opt.diagnostics, 
                      xdata=self.opt.cr_wl.value, ydata=self.nPix_1, marker='bo')
 
         self.OneDSpectra = self.extractSpec.spectra
@@ -314,16 +349,16 @@ class pipeline_stage_1():
         # 4) Now bin into spectral bins
         #==============================================================================
         # a) noisy data 
-        exosim_msg ("binning 1D spectra into spectral bins... from noisy data", self.opt.diagnostics)
+        exosim_n_msg ("binning 1D spectra into spectral bins... from noisy data", self.opt.diagnostics)
         self.extractSpec.binSpectra()    
 
         # b) noiseless data if selected     
         if self.opt.pipeline.useSignal.val == 1: 
-            exosim_msg ("binning 1D spectra into spectral bins... from signal only data", self.opt.diagnostics)
+            exosim_n_msg ("binning 1D spectra into spectral bins... from signal only data", self.opt.diagnostics)
             self.extractSpec_signal.binSpectra() 
             
         # c) sample data to find n_pix per bin    
-        exosim_msg ("binning 1D spectra into spectral bins... to find n_pix per bin", self.opt.diagnostics)
+        exosim_n_msg ("binning 1D spectra into spectral bins... to find n_pix per bin", self.opt.diagnostics)
         self.extractSpec_nPix.binSpectra() 
 
         #==============================================================================
@@ -345,10 +380,9 @@ class pipeline_stage_1():
          
         self.nPix_2 =  self.extractSpec_nPix.binnedLC[0]
         
-        exosim_plot('n_pix per bin', self.opt.diagnostics,
+        exosim_n_plot('n_pix per bin', self.opt.diagnostics,
                      xdata=self.binnedWav, ydata =self.nPix_2, marker= 'ro')
-  
-    
+   
 
     def extractSpecHotPix(self):    
         self.metadata['diff'] = 1
@@ -378,87 +412,73 @@ class pipeline_stage_1():
             self.binnedAllPix = self.binnedAllPix[:,3:]
 
          
-    def extractPhot_decorr(self):
-        self.extractPhot_decorr = binning.extractPhot_decorr(self.data, self.metadata) 
-        if self.opt.useSignal == 1:  
-            self.extractPhot_decorr_signal = binning.extractPhot_decorr(self.signal, self.metadata)         
+    def extractPhot(self):
+        ApRadius = (self.ApFactor* self.opt.channel.wfno_y.val*self.opt.phot_wav)
+        ApArea = np.pi*ApRadius**2
+        PixArea =  (self.opt.channel.detector_pixel.pixel_size.val)**2
+        self.nPix_1 = self.nPix_2 = ApArea/PixArea
+        print (ApArea, PixArea)
+        exosim_n_msg(f'Pixels per aperture {self.nPix_2}', self.opt.diagnostics)
+
+        self.extractPhot = binning.extractPhot(self.opt.data, self.opt, self.opt.diff, self.ApFactor, 'data') 
+        if  self.opt.pipeline.useSignal.val == 1:   
+            self.extractPhot_signal = binning.extractPhot(self.opt.data_signal_only, self.opt, self.opt.diff, self.ApFactor, 'signal only')      
         
-        self.binnedLC =  self.extractPhot_decorr.photLC    
-        if self.opt.useSignal == 1: 
-            self.binnedLC_signal =  self.extractPhot_decorr_signal.photLC  
+        self.binnedLC =  self.extractPhot.binnedLC    
+        if  self.opt.pipeline.useSignal.val == 1:   
+            self.binnedLC_signal =  self.extractPhot_signal.binnedLC    
         else:
             self.binnedLC_signal =  self.binnedLC 
-   
-        self.low_SNR_flag = self.extractPhot_decorr.low_SNR_flag
-       
-#==============================================================================
-#         Aperture correction
-#==============================================================================
+      
+# #==============================================================================
+# #         Aperture correction
+# #==============================================================================
            
-        if self.opt.aperture_corr ==1:   
-            s= []   
-            if self.opt.useSignal == 1: # using noiseless signal to get ap corr
-                data0 = self.signal # maskless signal
-                s_mask = self.binnedLC_signal
+#         if self.opt.aperture_corr ==1:   
+#             s= []   
+#             if self.opt.useSignal == 1: # using noiseless signal to get ap corr
+#                 data0 = self.signal # maskless signal
+#                 s_mask = self.binnedLC_signal
                
-            else:# using noisy signal to get ap corr
-                data0 = self.data # maskless signal 
-                s_mask = self.binnedLC
+#             else:# using noisy signal to get ap corr
+#                 data0 = self.data # maskless signal 
+#                 s_mask = self.binnedLC
               
                 
-            for i in range(data0.shape[2]):
+#             for i in range(data0.shape[2]):
                 
-                s.append(data0[...,i].sum())
+#                 s.append(data0[...,i].sum())
                                  
-            s = np.array(s)
+#             s = np.array(s)
        
-            # plt.figure('ap corr test')
-            # plt.plot(s, 'rx')
-            # plt.plot(s_mask, 'b+')
-            # plt.ylim (np.min(s_mask)- np.min(s_mask)*0.1 ,np.max(s)+np.max(s)*0.1)
+#             # plt.figure('ap corr test')
+#             # plt.plot(s, 'rx')
+#             # plt.plot(s_mask, 'b+')
+#             # plt.ylim (np.min(s_mask)- np.min(s_mask)*0.1 ,np.max(s)+np.max(s)*0.1)
             
-            ap_corr = s.mean() / s_mask.mean()
-            # print ("aperture correction factor", ap_corr)
+#             ap_corr = s.mean() / s_mask.mean()
+#             # print ("aperture correction factor", ap_corr)
             
-            # plt.figure('ap corr test 2')
-            # plt.plot(s.mean(), 'ro')
-            # plt.plot(s_mask.mean(), 'bo')
-            # plt.plot(s_mask.mean()*ap_corr, 'gx')
+#             # plt.figure('ap corr test 2')
+#             # plt.plot(s.mean(), 'ro')
+#             # plt.plot(s_mask.mean(), 'bo')
+#             # plt.plot(s_mask.mean()*ap_corr, 'gx')
             
      
-            self.binnedLC *= ap_corr
-            if self.opt.useSignal == 1:  
-                self.binnedLC_signal *= ap_corr
+#             self.binnedLC *= ap_corr
+#             if self.opt.useSignal == 1:  
+#                 self.binnedLC_signal *= ap_corr
  
 
-#==============================================================================
-#         
-#==============================================================================
-
-        self.binnedWav =  self.extractPhot_decorr.photWav
-            
-        self.binnedGamma =  self.extractPhot_decorr.photGamma
-        self.OneDSpectra = self.binnedLC 
+        self.binnedWav =  self.extractPhot.binnedWav
+        if self.opt.timeline.apply_lc.val ==1:    
+            self.binnedGamma =  self.extractPhot.binnedGamma
         
-        d_x_wav_osr = np.abs(np.gradient(self.opt.x_wav_osr))
-        self.binnedWavEdges = [self.opt.x_wav_osr[0]-d_x_wav_osr[0] , self.opt.x_wav_osr[-1]+ d_x_wav_osr[-1]]
-        self.binnedWavBinSizes = (self.opt.x_wav_osr[-1]+ d_x_wav_osr[-1]) - (self.opt.x_wav_osr[0]-d_x_wav_osr[0])
-        
-        
-    def extractPhot_fixed(self):
-        self.extractPhot_fixed = binning.extractPhot_fixed(self.data, self.metadata) 
-        self.binnedLC =  self.extractPhot_fixed.photLC    
-        self.binnedWav =  self.extractPhot_fixed.photWav   
+        # d_x_wav_osr = np.abs(np.gradient(self.opt.x_wav_osr))
+        # self.binnedWavEdges = [self.opt.x_wav_osr[0]-d_x_wav_osr[0] , self.opt.x_wav_osr[-1]+ d_x_wav_osr[-1]]
+        # self.binnedWavBinSizes = (self.opt.x_wav_osr[-1]+ d_x_wav_osr[-1]) - (self.opt.x_wav_osr[0]-d_x_wav_osr[0])
         
 
-    def extractPhot_no_ap(self):
-        self.extractPhot_no_ap = binning.extractSpec(self.data, self.metadata) 
-        self.extractPhot_no_ap.extract1DSpectra()
-        self.binnedLC =   self.extractPhot_no_ap.spectra.sum(axis=1)
-        
-        self.binnedWav =  self.metadata['WL'][0]
-        self.OneDSpectra = self.binnedLC
-        
 
     def findSlitloss(self):
         self.Slitloss = binning.findSlitloss(self.data, self.metadata) 

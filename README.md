@@ -57,10 +57,10 @@ ExoSim_N is a generic shell.  You will need a 'system' folder that contains all 
 
 Running a simulation
 ------
-Navigate to inside the `ExoSim_N` folder, and run the `run_exosim.py` file with an input parameter file (e.g. `exosim_input_params_ex1.txt`) as the argument.  Some example input parameter files are provided (see below).
+Navigate to inside the `ExoSim_N` folder, and run the `run_exosim.py` file with an input parameter file (e.g. `exosim_n_input_params_ex1.txt`) as the argument.  Some example input parameter files are provided (see below).
 
       cd ExoSim_N
-      python run_exosim.py exosim_input_params_ex1.txt
+      python run_exosim.py exosim_n_input_params_ex1.txt
       
 Alternately if using an IDE (e.g. Spyder), you can open the file `ExoSim_N/exosim)n/run_files/run_exosim.py` and run from within the environment using the parameter file name (e.g. `exosim_input_params_ex1.txt`) as the argument for the function `run`.  Results will be packaged as a .pickle file in the designated output folder.  The code will also display results once completed.
 

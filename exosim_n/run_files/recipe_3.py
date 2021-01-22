@@ -1,5 +1,6 @@
 '''
-ExoSim_N
+exosim_n
+
 Recipe 3 - OOT simulation returning a noise budget
  
 '''
@@ -8,8 +9,8 @@ import time, os, pickle
 from datetime import datetime
 from exosim_n.modules import astroscene, telescope, channel, backgrounds
 from exosim_n.modules import detector, timeline, light_curve, systematics, noise
-from exosim_n.EDaRP.runEDaRP import pipeline_stage_1, pipeline_stage_2
-from exosim_n.lib.exolib import exosim_msg, exosim_plot, write_record
+from exosim_n.pipeline.run_pipeline import pipeline_stage_1, pipeline_stage_2
+from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot, write_record
 from astropy import units as u
 
  
@@ -32,7 +33,7 @@ class recipe_3(object):
                 
         opt.timeline.apply_lc.val = 0
         opt.timeline.useLDC.val = 0
-        opt.pipeline.useAllen.val =1
+        opt.pipeline.useAllen.val =0
         
         opt.pipeline.pipeline_auto_ap.val = 0 # for noise budget keep this to a fixed value (i.e. choose 0) so same for all sims
          
@@ -81,8 +82,8 @@ class recipe_3(object):
                 opt.noise_tag = nb_dict['noise_tag'][i]
                 opt.color = nb_dict['color'][i] 
                 
-                exosim_msg('==========================================', 1)
-                exosim_msg('Noise source:%s'%(opt.noise_tag), 1)
+                exosim_n_msg('==========================================', 1)
+                exosim_n_msg('Noise source:%s'%(opt.noise_tag), 1)
                 
                 if (opt.no_real-start) > 1:      
                    print ("============= REALIZATION %s ============="%(j))
@@ -95,7 +96,7 @@ class recipe_3(object):
                 opt.observation_feasibility =1  
                     
                 if opt.observation_feasibility ==0:      
-                    exosim_msg ("Observation not feasible...", opt.diagnostics)
+                    exosim_n_msg ("Observation not feasible...", opt.diagnostics)
                     self.feasibility = 0    
                 else:
                     self.feasibility = 1    
@@ -178,47 +179,46 @@ class recipe_3(object):
                         with open(filename, 'wb') as handle:
                             pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
          
-                            exosim_msg('Results in %s'%(filename), 1)
+                            exosim_n_msg('Results in %s'%(filename), 1)
                             self.filename = 'Noise_budget_%s_%s.pickle'%(opt.lab, time_tag)
 
                             write_record(opt, output_directory, self.filename, opt.params_file_path)
     def run_exosim_n_A(self, opt):
-      exosim_msg('Exosystem', 1)
+      exosim_n_msg('Exosystem', 1)
       astroscene.run(opt)
-      exosim_msg('Telescope', 1)
+      exosim_n_msg('Telescope', 1)
       telescope.run(opt)
-      exosim_msg('Channel', 1)
+      exosim_n_msg('Channel', 1)
       channel.run(opt)
-
-      exosim_msg('Backgrounds', 1)
+      exosim_n_msg('Backgrounds', 1)
       backgrounds.run(opt) 
       
             
-      exosim_msg('Detector', 1)
+      exosim_n_msg('Detector', 1)
       detector.run(opt) 
-      exosim_msg('Timeline', 1)
+      exosim_n_msg('Timeline', 1)
       timeline.run(opt)
-      exosim_msg('Light curve', 1)
+      exosim_n_msg('Light curve', 1)
       light_curve.run(opt)        
       return opt
 
     def run_exosim_n_A1(self, opt):
-      exosim_msg('Systematics', 1)
+      exosim_n_msg('Systematics', 1)
       systematics.run(opt)               
       return opt     
       
     def run_exosim_n_B(self, opt):
-      exosim_msg('Noise', 1)
+      exosim_n_msg('Noise', 1)
       noise.run(opt)
       return opt
       
     def run_pipeline_stage_1(self, opt):
-      exosim_msg('Pipeline stage 1', 1)
+      exosim_n_msg('Pipeline stage 1', 1)
       opt.pipeline_stage_1 = pipeline_stage_1(opt)   
       return opt             
                
     def run_pipeline_stage_2(self, opt):    
-      exosim_msg('Pipeline stage 2', 1)
+      exosim_n_msg('Pipeline stage 2', 1)
       opt.pipeline_stage_2 = pipeline_stage_2(opt)             
       return opt 
   

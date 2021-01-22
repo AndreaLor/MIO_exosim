@@ -8,9 +8,9 @@ modified by Subi to use without generating FITS files'''
 from scipy.interpolate import interp2d, interp1d
 from astropy import units as u
 import numpy as np
-from exosim_n.lib.exolib import exosim_msg
+from exosim_n.lib.exosim_n_lib import exosim_n_msg
 
-class ExoSimDecorr:
+class exosim_nDecorr:
 
     def __init__(self, data, opt):
         
@@ -48,15 +48,10 @@ class ExoSimDecorr:
             spat_offset = np.mean(spat_offset) / self.plate_scale         
             spec.append(spec_offset)
             spat.append(spat_offset) 
-            
-            
-            
-                
+      
         self.modelJitterOffsetSpec = np.array(spec)        
         self.modelJitterOffsetSpat = np.array(spat)
-        self.modelJitterOffsetSpec = self.modelJitterOffsetSpec - self.modelJitterOffsetSpec.mean()
-        self.modelJitterOffsetSpat = self.modelJitterOffsetSpat - self.modelJitterOffsetSpat.mean()          
-       
+
     def getPointingOffsets(self):      
       XX = {'spec':self.modelJitterOffsetSpec, 'spat':self.modelJitterOffsetSpat  }         
       return XX
@@ -126,7 +121,7 @@ class jitterCode():
         
         self.opt = opt
         self.data = data
-        self.jdc = ExoSimDecorr(self.data, self.opt)
+        self.jdc = exosim_nDecorr(self.data, self.opt)
                     
         if method =='xcorr-interp' or method == 'xcorr-fft':         
             jiggOffsetMeasure = {'spec':np.zeros(self.jdc.nExp), 'spat':np.zeros(self.jdc.nExp)}
@@ -149,7 +144,7 @@ class jitterCode():
             if method =='pointing-fft':
                 self.shiftedMaps = JitterRemoval.fftShift(self.jdc, self.jdc.getPointingOffsets(), self.data)
 
-        exosim_msg ("method %s"%(method), opt.diagnostics)
+        exosim_n_msg ("method %s"%(method), opt.diagnostics)
     
         self.getData()
     

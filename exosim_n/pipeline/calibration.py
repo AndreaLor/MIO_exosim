@@ -8,7 +8,7 @@ Calibration
 
 """
 import numpy as np
-from exosim_n.lib.exolib import exosim_msg
+from exosim_n.lib.exosim_n_lib import exosim_n_msg
 from astropy import units as u
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -187,7 +187,7 @@ def dqInit(data, opt):
 def satFlag(data, opt): 
     
     margin = 0.1
-    exosim_msg ("flagging pixels more than %s percent above saturation limit..."%(margin*100), opt.diagnostics)
+    exosim_n_msg ("flagging pixels more than %s percent above saturation limit..."%(margin*100), opt.diagnostics)
     # margin accounts for fact that noise may increase the counts to above the designated sat limit
 
     sat_limit = opt.sat_limit.value + margin* opt.sat_limit.value
@@ -199,21 +199,21 @@ def satFlag(data, opt):
         dq_array[idx[i][0]][idx[i][1]][idx[i][2]] = 2      
     # flag 2 = 'saturated pixels' (overmaps flag 1)
 
-    exosim_msg ("number of saturated pixels over all NDRs %s"%(len(idx)),  opt.diagnostics)
+    exosim_n_msg ("number of saturated pixels over all NDRs %s"%(len(idx)),  opt.diagnostics)
     opt.dq_array = dq_array      
      
     return opt.dq_array     
  
 
 def badCorr(data, opt): 
-    # exosim_msg ("correcting bad pixels...", opt.diagnostics)
-    exosim_msg ("applying zero value to saturated pixel timelines...", opt.diagnostics)
+    # exosim_n_msg ("correcting bad pixels...", opt.diagnostics)
+    exosim_n_msg ("applying zero value to saturated pixel timelines...", opt.diagnostics)
     opt.data_pre_flag = data*1
     dq_array = opt.dq_array
     bad_map = dq_array.sum(axis=2)
     idx = np.argwhere(bad_map > 0)
   
-    exosim_msg('number of saturated pixels per image %s'%(len(idx )), opt.diagnostics)
+    exosim_n_msg('number of saturated pixels per image %s'%(len(idx )), opt.diagnostics)
 
     bad_map = np.where(bad_map == 0, 0, 1)  
     if opt.pipeline.pipeline_bad_corr.val == 1:
@@ -229,7 +229,7 @@ def badCorr(data, opt):
     
       
 def subZero(opt):
-    exosim_msg ("subtracting zeroth read...", opt.diagnostics)
+    exosim_n_msg ("subtracting zeroth read...", opt.diagnostics)
     multiaccum = opt.effective_multiaccum
     
     new_data = np.zeros((opt.data.shape[0],opt.data.shape[1],opt.data.shape[2]))
@@ -241,7 +241,7 @@ def subZero(opt):
     return opt   
         
 def subDark(opt):    
-    exosim_msg ("subtracting dark signal...", opt.diagnostics)
+    exosim_n_msg ("subtracting dark signal...", opt.diagnostics)
     
     dc_time =  opt.channel.detector_pixel.Idc.val* opt.duration_per_ndr
     new_data = opt.data - dc_time   
@@ -250,21 +250,21 @@ def subDark(opt):
         
     
 def flatField(opt):    
-    exosim_msg ("applying flat field...", opt.diagnostics)
+    exosim_n_msg ("applying flat field...", opt.diagnostics)
     
     QE_grid = opt.qe_grid   
     opt.data =  np.rollaxis(opt.data,2,0)
     opt.data = opt.data/QE_grid
     opt.data =  np.rollaxis(opt.data,0,3) 
     
-    exosim_msg("std of flat field...%s"%(QE_grid.std()), opt.diagnostics)
+    exosim_n_msg("std of flat field...%s"%(QE_grid.std()), opt.diagnostics)
     
     return opt
     
  
 
 def subBackground(opt) : 
-    exosim_msg ("subtracting background...", opt.diagnostics)
+    exosim_n_msg ("subtracting background...", opt.diagnostics)
    
     border_pix = 5
     if opt.data.shape[0]<20:
@@ -287,7 +287,7 @@ def doUTR(data, opt):
     time =  opt.ndr_end_time.value
     
     if multiaccum==2 or opt.simulation.sim_full_ramps.val == 0:
-        exosim_msg ("doing CDS...", opt.diagnostics)
+        exosim_n_msg ("doing CDS...", opt.diagnostics)
 
         new_data = np.zeros((data.shape[0],data.shape[1], n_exp))
         ct = 0        
@@ -296,7 +296,7 @@ def doUTR(data, opt):
             ct = ct+1
         return new_data
     else:
-        exosim_msg ("fitting ramps...", opt.diagnostics)
+        exosim_n_msg ("fitting ramps...", opt.diagnostics)
         utr_data = np.zeros(( data.shape[0], data.shape[1] ,n_exp))
 #        utr_error = np.zeros(( data.shape[0], data.shape[1] ,n_exp))
    
