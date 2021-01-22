@@ -89,8 +89,8 @@ def run(params_file):
   
   opt.sim_mode = opt.simulation.sim_mode.val
   opt.lab = '%s_%s'%(opt.observation.obs_channel.val,pl)
- 
- 
+  
+  
   if opt.sim_mode == 1:
           recipe  = recipe_1(opt)       
   if opt.sim_mode == 2:

@@ -1,0 +1,3 @@
+[console_scripts]
+exosim_n = exosim_n.__run__:console
+
