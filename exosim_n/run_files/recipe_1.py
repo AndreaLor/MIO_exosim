@@ -50,11 +50,10 @@ class recipe_1(object):
                    'source_switch':[1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1],
                    'diff'         :[0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0],
                    'jitter_switch':[1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0],
-                   'fano'         :[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
                    'noise_tag': [ 'All noise','All photon noise','Source photon noise','Dark current noise',
                         'Zodi noise','Emission noise','Read noise','Spatial jitter noise',
                         'Spectral jitter noise','Combined jitter noise','No noise - no background','No noise - all background', 'Fano noise'],  
-                        'color': ['0.5','b', 'b','k','orange','pink', 'y','g','purple','r', '0.8','c', 'c']
+                        'color': ['0.5','b', 'b','k','orange','pink', 'y','g','purple','r', '0.8', 'c']
               } 
                
 
@@ -151,31 +150,42 @@ class recipe_1(object):
                     time_tag = (datetime.now().strftime('%Y_%m_%d_%H%M_%S'))
                     self.results_dict['time_tag'] =  time_tag
              
+                    if j == start:
+                        filename = '%s/OOT_SNR_%s_%s_TEMP.pickle'%(output_directory, opt.lab, time_tag)
+                        self.filename = 'OOT_SNR_%s_%s_TEMP.pickle'%(opt.lab, time_tag)
+                        with open(filename, 'wb') as handle:
+                            pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
+                        write_record(opt, output_directory, self.filename, opt.params_file_path)
+                        
                     if j != start:
-                        os.remove(filename)  # delete previous temp file
+                        os.remove(filename)  # delete previous temp file  
                         txt_file = '%s.txt'%(filename)
-                        os.remove(txt_file) 
-                    filename = '%s/OOT_SNR_%s_%s_TEMP.pickle'%(output_directory, opt.lab, time_tag)
-                    self.filename = 'OOT_SNR_%s_%s_TEMP.pickle'%(opt.lab, time_tag)
-                    with open(filename, 'wb') as handle:
-                        pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
+                        os.remove(txt_file)         
+                        filename = '%s/OOT_SNR_%s_%s_TEMP.pickle'%(output_directory, opt.lab, time_tag)
+                        self.filename = 'OOT_SNR_%s_%s_TEMP.pickle'%(opt.lab, time_tag)
+                        with open(filename, 'wb') as handle:
+                            pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)    
+                        write_record(opt, output_directory, self.filename, opt.params_file_path)
                        
                     if j == end-1:
+                        
                         os.remove(filename)  # delete previous temp file
+                        txt_file = '%s.txt'%(filename)
+                        os.remove(txt_file)             
                         filename = '%s/OOT_SNR_%s_%s.pickle'%(output_directory, opt.lab, time_tag)
                         with open(filename, 'wb') as handle:
                             pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
                         
-                        exosim_n_msg('Results in %s'%(filename), 1)
+                        twinklesim_msg('Results in %s'%(filename), 1)
                         self.filename = 'OOT_SNR_%s_%s.pickle'%(opt.lab, time_tag)
+                        write_record(opt, output_directory, self.filename, opt.params_file_path)
                                 
                 
                 elif opt.simulation.sim_output_type.val == 2:
                      
                     output.run(opt)
                     
-                write_record(opt, output_directory, self.filename, opt.params_file_path)
-                            
+                             
                             
     def run_exosim_nA(self, opt):
       exosim_n_msg('Exosystem', 1)

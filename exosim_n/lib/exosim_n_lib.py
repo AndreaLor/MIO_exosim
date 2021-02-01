@@ -16,9 +16,9 @@ def exosim_n_error(error_msg):
     sys.stderr.write("Error code: {:s}\n".format(error_msg))
     sys.exit(0)
     
-def exosim_n_msg(msg, prefix = None):
-  # msg = msg if prefix==None else "[%s]: %s\n"%(prefix, msg)
-  print(msg)
+def exosim_n_msg(msg, diagnostics):
+  if diagnostics == 1:
+      print(msg)
   
 def exosim_n_plot(figure_name, show, image=False, xlabel=None,
                  ylabel=None, image_data=None, xdata=None, ydata=None, marker='-',

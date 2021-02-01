@@ -3,7 +3,7 @@
 build/
 dist/
 archive/
-exosim.egg-info
+exosim_n.egg-info
 output/
 __pycache__/
 

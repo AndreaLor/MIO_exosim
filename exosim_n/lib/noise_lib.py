@@ -119,7 +119,10 @@ def simulate_jitter(opt):
             try:
               mag = np.int(magnification_factor.item()) | 1
             except:
-              mag = np.int(magnification_factor) | 1               
+              mag = np.int(magnification_factor) | 1
+
+    else:
+        mag = 1
     exosim_n_msg ("mag %s"%(mag) , opt.diagnostics) 
     fp = exosim_n_lib.oversample(fp, mag)
     osf *= mag

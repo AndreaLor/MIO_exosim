@@ -111,10 +111,10 @@ pipeline_ap_shape	 wav
 pipeline_apply_mask	 1
 # Enter 1 to apply mask in data reduction. Enter 0 to omit mask. Recommend 1.
 
-pipeline_auto_ap	  0	
+pipeline_auto_ap	  1	
 # Enter 1 to allow code to find optimal mask width. 0 to set mask width by user (see below).  Recommend 1 
 
-pipeline_ap_factor	 3.0	 	
+pipeline_ap_factor	  	 	
 # Choose mask width in units of F-number*wavelength (only applied if pipeline_auto_ap = 0). If pipeline_ap_shape = rect, longest wavelength is used to set the width).
 
 pipeline_bad_corr	 1
