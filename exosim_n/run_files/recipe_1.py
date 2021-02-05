@@ -176,7 +176,7 @@ class recipe_1(object):
                         with open(filename, 'wb') as handle:
                             pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
                         
-                        twinklesim_msg('Results in %s'%(filename), 1)
+                        exosim_n_msg('Results in %s'%(filename), 1)
                         self.filename = 'OOT_SNR_%s_%s.pickle'%(opt.lab, time_tag)
                         write_record(opt, output_directory, self.filename, opt.params_file_path)
                                 
