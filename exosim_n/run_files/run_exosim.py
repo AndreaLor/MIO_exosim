@@ -6,6 +6,13 @@ from exosim_n.run_files.recipe_1 import recipe_1
 from exosim_n.run_files.recipe_2 import recipe_2
 from exosim_n.run_files.recipe_3 import recipe_3
 from exosim_n.run_files.recipe_4 import recipe_4
+from exosim_n.run_files.recipe_5 import recipe_5 # for testing only
+
+from exosim_n.run_files.recipe_2_no_pipeline import recipe_2_no_pipeline
+from exosim_n.run_files.recipe_1_no_pipeline import recipe_1_no_pipeline
+from exosim_n.run_files.recipe_5_no_pipeline import recipe_5_no_pipeline
+
+
 from exosim_n.run_files  import results
 
 import numpy           as     np
@@ -89,22 +96,49 @@ def run(params_file):
   
   opt.sim_mode = opt.simulation.sim_mode.val
   opt.lab = '%s_%s'%(opt.observation.obs_channel.val,pl)
+ 
   
+  if opt.simulation.sim_mode.val == 1:
+        if opt.simulation.sim_output_type.val == 1:
+            recipe  = recipe_1(opt) # replace with 1a to test split method
+        elif opt.simulation.sim_output_type.val == 2:   
+            recipe  = recipe_1_no_pipeline(opt)  
+ 
+        
+  if opt.simulation.sim_mode.val == 2:
+            if opt.simulation.sim_output_type.val == 1:
+                recipe  = recipe_2(opt)
+            elif opt.simulation.sim_output_type.val == 2:
+                recipe  = recipe_2_no_pipeline(opt)  
+                
+  if opt.simulation.sim_mode.val == 3: #noise budget
+            if opt.simulation.sim_output_type.val == 1:
+                recipe  = recipe_3(opt) # replace with 3a to test split method
+            elif opt.simulation.sim_output_type.val !=1:
+                exosim_n_msg('This output option is not currently available for noise budgets',1)
+                sys.exit()
   
-  if opt.sim_mode == 1:
-          recipe  = recipe_1(opt)       
-  if opt.sim_mode == 2:
-          recipe  = recipe_2(opt)
-  if opt.sim_mode == 3:
-          recipe  = recipe_3(opt) 
-  if opt.sim_mode == 4:
-          recipe  = recipe_4(opt)      
-          
-  results_file = recipe.filename
-  results.run(results_file)
+  if opt.simulation.sim_mode.val == 4: #same as 1 but no Allen analysis
+        if opt.simulation.sim_output_type.val == 1:
+            recipe  = recipe_4(opt) 
+        elif opt.simulation.sim_output_type.val == 2:   
+            recipe  = recipe_1_no_pipeline(opt) 
+                       
+  if opt.simulation.sim_mode.val == 5: #same as 1 but no Allen analysis
+        if opt.simulation.sim_output_type.val == 1:
+            recipe  = recipe_5(opt) 
+        elif opt.simulation.sim_output_type.val == 2:   
+            recipe  = recipe_5_no_pipeline(opt) 
+    
+  if opt.simulation.sim_output_type.val == 1:
+            results_file = recipe.filename
+            results.run(results_file)
+  else:
+        exosim_n_msg('No results', 1)
 
 if __name__ == "__main__":     
     
-     run('exosim_n_input_params_ex3_test.txt')
+     run('exosim_n_input_params_ex1.txt')
+     
  
     

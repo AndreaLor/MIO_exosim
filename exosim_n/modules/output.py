@@ -25,8 +25,8 @@ def run(opt):
     hdu.header['PLANET'] = (opt.planet.planet.name, 'Planet name')
     hdu.header['STAR'] = (opt.planet.planet.star.name, 'Star name')
     
-    hdu.header['CDELT1'] = (opt.channel.detector_pixel.plate_scale_x.val.to(u.deg).value, 'Degrees/pixel')
-    hdu.header['CDELT2'] = (opt.channel.detector_pixel.plate_scale_y.val.to(u.deg).value, 'Degrees/pixel')
+    hdu.header['CDELT1'] = (opt.channel.plate_scale_x.val.to(u.deg).value, 'Degrees/pixel')
+    hdu.header['CDELT2'] = (opt.channel.plate_scale_y.val.to(u.deg).value, 'Degrees/pixel')
     hdulist = fits.HDUList(hdu)
 
     for i in range(opt.n_exp):

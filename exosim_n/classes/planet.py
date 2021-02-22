@@ -69,7 +69,12 @@ class Planet(object):
 
   def file_model(self):
       filename = self.opt.exosystem_params.planet_spectrum_file.val   
-      print (filename)
+      if '/' in  filename:
+          pass
+      else:
+          filename = '%s/exosim_n/data/planet_spectra/%s'%(self.opt.exosim_n_path, filename)
+      
+      exosim_n_msg('planet spectrum from file: %s'%(filename),1)
       try:
           aa = np.loadtxt(filename)
       except IOError:
