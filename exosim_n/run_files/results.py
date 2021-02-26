@@ -429,4 +429,4 @@ def run(results_file):
 
 if __name__ == "__main__":     
 
-    run('OOT_SNR_AIRS CH1_GJ 1214 b_2021_02_15_1625_22.pickle')
+    run('Noise_budget_AIRS CH1_GJ 1214 b_2021_02_04_1120_06.pickle')

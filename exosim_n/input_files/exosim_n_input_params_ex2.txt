@@ -67,10 +67,10 @@ obs_type	  1
 obs_system	Ariel
 # put in named system
 
-obs_frac_t14_pre_transit	 
+obs_frac_t14_pre_transit   0.7	 
 # Enter fraction of transit duration to cover pre-transit. Recommend keep set to 0.5.  Only applied in full transit mode. 
 
-obs_frac_t14_post_transit 
+obs_frac_t14_post_transit   0.4
 # Enter fraction of transit duration to cover pre-transit. Recommend keep set to 0.5.  Only applied in full transit mode. 	 
 
 obs_use_sat 	 1

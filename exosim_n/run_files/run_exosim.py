@@ -138,7 +138,7 @@ def run(params_file):
 
 if __name__ == "__main__":     
     
-     run('exosim_n_input_params_ex1.txt')
+     run('exosim_n_input_params_ex2.txt')
      
  
     
