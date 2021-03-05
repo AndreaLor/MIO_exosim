@@ -15,7 +15,9 @@ import os
 
 def run(results_file):
     
-    exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+    # exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+    exosim_n_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../..'))
+    
     paths_file ='%s/exosim_n/input_files/exosim_n_paths.txt'%(exosim_n_path)
         
     params_to_opt = Params(0, paths_file, 3)  
@@ -429,4 +431,4 @@ def run(results_file):
 
 if __name__ == "__main__":     
 
-    run('Noise_budget_AIRS CH1_GJ 1214 b_2021_02_04_1120_06.pickle')
+    run('OOT_SNR_AIRS CH1_GJ 1214 b_2021_03_05_1332_31.pickle')

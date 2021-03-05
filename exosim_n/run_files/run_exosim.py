@@ -29,7 +29,9 @@ def run(params_file):
   
   exosim_n_msg('exosim_n is running!\n', 1) 
   exosim_n_msg('User-defined input parameter file: %s\n  '%(params_file), 1)  
-  exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+  # exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+  exosim_n_path =  os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../..'))
+  
   exosim_n_msg('Reading instrument file ... \n', 1)
   
   opt = Options(filename='').opt
@@ -138,7 +140,7 @@ def run(params_file):
 
 if __name__ == "__main__":     
     
-     run('exosim_n_input_params_ex2.txt')
+     run('exosim_n_input_params_ex1.txt')
      
  
     

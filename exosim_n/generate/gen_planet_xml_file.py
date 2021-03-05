@@ -38,7 +38,7 @@ pl_pubdate:     Planetary Parameter Reference Publication Date
 
 def make_planet_xml_file(opt, pl):
 
-    exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+    exosim_n_path =  opt.exosim_n_path
     databases_dir = '%s/archive'%(exosim_n_path)
     cond=0
     for root, dirs, files in os.walk(databases_dir):
@@ -62,7 +62,6 @@ def make_planet_xml_file(opt, pl):
      
     data = pd.read_csv(planet_db_path, skiprows=start_row)
     
-    exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
 
     target_folder = '%s/exosim_n/exosystems'%(exosim_n_path)
     template_folder = '%s/exosim_n/data/templates'%(exosim_n_path)

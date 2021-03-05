@@ -52,7 +52,10 @@ class Options(object):
     
         self.opt = self.parser(ET.parse(filename).getroot())
     
-        exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+        # exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
+        
+        exosim_n_path =  os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../..'))
+
      
         self.opt = self.parser(ET.parse(filename).getroot())
         
