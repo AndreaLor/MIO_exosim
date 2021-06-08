@@ -156,6 +156,7 @@ def sanity_check(opt):
 
 
 def get_psf(opt):  # there is an issue with PSF interpolation of very abberent PSFs due to aliasing - have to look at further
+     
       if opt.simulation.sim_use_wfe.val == 0: 
             psf = exosim_n_lib.Psf(opt.x_wav_osr.value, opt.channel.wfno.val, opt.channel.wfno_y.val, opt.fp_delta.value, shape='airy')  
             psf[np.isnan(psf)] =0

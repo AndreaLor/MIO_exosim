@@ -6,7 +6,7 @@ import os,sys
 from   ..classes import sed 
 from   ..lib import exosim_n_lib
 from exosim_n.lib.exosim_n_lib import exosim_n_msg
-
+from exosim_n.lib.exosim_n_lib import planck
 
 class Star():
 
@@ -108,11 +108,11 @@ class Star():
       
       print ('hello', K_mag)
       print ('hello', J_mag)
-      if K_mag == '':
+      if K_mag == '' :
           mag_band_list =['J', 'J']
-      if J_mag == '':
+      if J_mag == '' :
           mag_band_list =['K', 'K']
-      if J_mag == '' and K_mag == '':
+      if (J_mag == '' and K_mag == ''):
           exosim_n_msg('Star class error: no J or K magnitude entered')
           sys.exit()
           

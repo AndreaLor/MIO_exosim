@@ -344,7 +344,216 @@ class extractSpec():
         self.diff = diff # note this must not be substituted by opt.diff, since will vary for signal only, noise etc
         self.ApFactor = ApFactor
         self.final_ap = final_ap
-             
+        
+    #==============================================================================
+    # Apply an optimal aperture mask  based on wavelength and F and extract 1-D spectrum
+    #==============================================================================
+    def applyMask_optimal_extract_1D(self):   
+            Cen_list,w_list,pix1_listAll,pix2_listAll=self.getMask()
+            self.spectraOptimal=self.doOptimalExtraction(Cen_list,w_list,pix1_listAll,pix2_listAll)
+
+    def doOptimalExtraction(self,Cen_list,w_list,pix1_listAll,pix2_listAll):
+        wl = self.opt.cr_wl.value
+        subtractedCube =self.data    #assume background already subtracted.
+        spectra=self.extract_1D(Cen_list,w_list,pix1_listAll,pix2_listAll) #reuse sum over x axis already implemented
+        #parameter set in the optimalApertureTask inputs. here fixed values
+        #parameter present in the  optimalApertureTask but useless because always worst results:  varInTime,useAverage,normalizeP0
+        #parameter present in the  optimalApertureTask but not implemented here: cycle , maskedRatio0, testMaskedPixels
+        #               (because CR detection and removal is over the scope of this implementetion)
+        trange=np.arange(subtractedCube.shape[2])
+        maxNncycle=0
+        useFit=True 
+        clipThreshold=25
+        useLambdaQ=True
+        useTimeRo=False #because integration time weighting  is NEVER used in exosim pipeline.
+
+        p0=subtractedCube / spectra
+        p0=self.doNormalize(p0)
+
+    def  doNormalize(self,p0):
+
+        """
+		Horne step 5 (b). Enforce Positivity and Normalization : P=MAX[P;0]   
+		Parameters: 
+			p0: the  3D array (X, w, t)  to be normilized 
+		Returns:
+		    p0  : the  3D array (X, w, t) with valuesnormilized along first axis
+		"""
+        p0[p0 < 0] = 0.
+        try:
+            p0/=np.sum(p0, axis=(0))
+        except:    #Note: there could be Nan due to negative values in fit, that become all zeros
+            self.log("p0 Nan founds= %i"%p0[np.isnan(p0)].size)   
+            p0[np.isnan(p0)]=0
+        return p0
+
+
+    def getMask(self):
+        wl = self.opt.cr_wl.value
+        F = self.opt.channel.wfno.val
+        pixSize = (self.opt.channel.detector_pixel.pixel_size.val).to(u.um).value
+        ApFactor = self.ApFactor
+        ApShape = self.opt.pipeline.pipeline_ap_shape.val
+        wl_max = self.opt.channel.pipeline_params.wavrange_hi.val       
+        exosim_n_msg ("ap factor %s"%(ApFactor) , self.opt.diagnostics)
+        exosim_n_msg ("ap shape %s"%(ApShape ),      self.opt.diagnostics)
+        exosim_n_msg ("max wl %s"%(wl_max), self.opt.diagnostics)     
+        #====================plot mask centre and edges========================================================== 
+        w_list =[]
+        for  i in range(len(wl)):
+            if ApShape =='wav':                  
+                    w = ApFactor*F*wl[i] 
+            elif ApShape =='rect':  
+                    w = ApFactor*F*wl_max  #defaults to rectangular
+            w_list.append(w) # in distance units
+        if self.diff !=1 :           
+            #        self.opt.aa = self.data_signal_only.sum(axis =2)
+            self.opt.aa = self.data.sum(axis =2)
+             # 1) find max position of image
+            indices = np.where(self.opt.aa == self.opt.aa.max())  
+            y_max = indices[0].max() # max excludes rare situation of having 2 or more indices
+            x_max = indices[1].max()
+            ydata = self.opt.aa[:,x_max]
+            xdata = np.arange(0,self.opt.aa.shape[0])            
+            
+            fitfunc  = lambda p, x: p[0]*np.exp(-0.5*((x-p[1])/p[2])**2)
+            errfunc  = lambda p, x, y: (y - fitfunc(p, x))
+            init  = [self.opt.aa[y_max,x_max], y_max , 2.0]
+            out   = optimize.leastsq(errfunc, init, args=(xdata, ydata))[0]
+        #                ymodel = out[0]*np.exp(-0.5*((xdata-out[1])/out[2])**2) 
+            Cen0 = out[1]   # in pixel units     pixel unit = (distance unit/pixsize)  -0.5      
+        else:
+            Cen0 = (self.data.shape[0]/2.)-0.5        
+        exosim_n_msg ("Cen0 %s"%(Cen0),  self.opt.diagnostics)                           
+        X1 = Cen0 - np.array(w_list)/pixSize
+        X2 = Cen0 +  np.array(w_list)/pixSize        
+        X0 = [Cen0]* len(w_list)        
+        if self.final_ap == 1:
+            self.opt.cen = Cen0        
+        if self.final_ap ==2 or self.final_ap ==1:   #excludes signal only and n_pix runs 
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+                         image = True,
+                         image_data = self.data.sum(axis=2), aspect='auto', interpolation = None)    
+        if self.final_ap ==2:   #2 = test ap chosen in noisy data 
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+                         ydata = X1, marker = 'b--')
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+                         ydata = X2, marker = 'b--')   
+        if self.final_ap ==1:   #1 = final ap chosen in noisy data   
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+                         ydata = X0, marker = 'c--',  linewidth =3)  
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+                         ydata = X1, marker = 'w--',  linewidth =3)              
+            exosim_n_plot('y position of mask centre (pixels) vs x pixel', self.opt.diagnostics,
+                         ydata = X2, marker = 'w--',  linewidth =3)              
+        nWLs = self.data.shape[2]  # how many steps in the loop
+        # Progress Bar setup:
+        ProgMax = 100    # number of dots in progress bar
+        if nWLs<ProgMax:   ProgMax = nWLs   # if less than 20 points in scan, shorten bar       
+        if self.final_ap == 1:
+            print ("|" +    ProgMax*"-"    + "|     Applying variable position mask: progress")
+            sys.stdout.write('|'); sys.stdout.flush();  # exosim_n_msg start of progress bar
+        nProg = 0   # fraction of progress                     
+        Cen_list=[]
+        w_list =[]
+        pix1_listAll  =[]
+        pix2_listAll  =[]
+        for i in range(self.data.shape[2]):
+            if self.final_ap == 1:
+                if ( i >= nProg*nWLs/ProgMax ):     
+                        sys.stdout.write('*'); sys.stdout.flush();  
+                        nProg = nProg+1
+                if ( i >= nWLs-1 ):    
+                        sys.stdout.write('|     done  \n'); sys.stdout.flush();                  
+            inImage = self.data[...,i]
+             # 1) find max position of image
+            indices = np.where(inImage == inImage.max())  
+            y_max = indices[0].max() # max excludes rare situation of having 2 or more indices
+            x_max = indices[1].max()
+            ydata = inImage[:,x_max]
+            xdata = np.arange(0,inImage.shape[0])
+            #            if self.diff ==0:
+            #                fitfunc  = lambda p, x: p[0]*np.exp(-0.5*((x-p[1])/p[2])**2)
+            #                errfunc  = lambda p, x, y: (y - fitfunc(p, x))
+            #                init  = [inImage[y_max,x_max], y_max , 2.0]
+            #                out   = optimize.leastsq(errfunc, init, args=(xdata, ydata))[0]
+            ##                ymodel = out[0]*np.exp(-0.5*((xdata-out[1])/out[2])**2) 
+            #                Cen = out[1]   #in pixel coords              
+            #            elif self.diff ==1:
+            #                Cen=Cen0*1.0
+            ##                Cen = self.opt.aa.shape[0] /2. -0.5              
+            Cen = Cen0*1.0                            
+            Cen_list.append(Cen)           
+            pix1_list  =[]
+            pix2_list  =[]
+            for j in range(inImage.shape[1]):                
+                sig = inImage[: ,j]
+                if ApShape =='wav':                  
+                    w = ApFactor*F*wl[j] 
+                elif ApShape =='rect':     
+                    w = ApFactor*F*wl_max  #defaults to rectangular               
+                X1 = Cen - w/pixSize
+                X2 = Cen +  w/pixSize               
+                #pixA = int(X1+0.5)
+                #pixB = int(X2+0.5)
+                pix1_list.append(X1)
+                pix2_list.append(X2)
+                if i ==0:
+                    w_list.append(2*w)
+                    pix1_listAll.append(pix1_list) 
+                    pix2_listAll .append(pix2_list) 
+        return Cen_list,w_list,pix1_listAll,pix2_listAll
+   
+#==============================================================================
+
+    def extract_1D(self,Cen_list,w_list,pix1_listAll,pix2_listAll):
+        wl = self.opt.cr_wl.value
+        for i in range(self.data.shape[2]): 
+            inImage = self.data[...,i]             
+            signal_list = [] 
+            pix1_list=pix1_listAll[i]
+            pix2_list=pix2_listAll[i]
+            for j in range(inImage.shape[1]):                
+                sig = inImage[: ,j]
+                X1=pix1_list[j]
+                X2=pix2_list[j]
+                pixA = int(X1+0.5)
+                pixB = int(X2+0.5)
+                if pixA!= pixB:
+                    wholepix = np.sum(sig[pixA+1:pixB])
+                    RS = sig[pixB]*(X2+0.5-pixB)
+                    LS = sig[pixA]*(pixA+0.5-X1)
+                    in_mask_signal = wholepix +RS+LS
+                    signal_list.append(in_mask_signal)
+                                                   
+
+                else:
+                    in_mask_signal= sig[pixA]*(X2-X1)
+                    signal_list.append(in_mask_signal)
+                    
+                
+            if i == 0:
+                signal_stack = signal_list
+            else:
+                signal_stack = np.vstack((signal_stack, signal_list))
+        return signal_stack
+
+
+        exosim_n_plot('Centre of mask (pixel units) vs exposure', self.opt.diagnostics, 
+             ydata=Cen_list)    
+        
+        exosim_n_plot('width of mask (microns) vs pixel column', self.opt.diagnostics, 
+             ydata=w_list, marker='bo')  
+        
+        exosim_n_plot('width of mask (microns) vs wavelength of pixel column', self.opt.diagnostics, 
+             xdata=wl, ydata = w_list, marker = 'bo' )     
+        
+  
+ 
+        self.spectra=signal_stack
+
+
+
     #==============================================================================
     # Apply a mask based on wavelength and F and extract 1-D spectrum
     #==============================================================================

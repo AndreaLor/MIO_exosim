@@ -10,9 +10,14 @@ from astropy import units as u
 from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
 from exosim_n.lib import astroscene_lib
 import copy
+from exosim_n.classes.options import Options
+import matplotlib.pyplot as plt
 
 def run(opt):
-    
+  DEBUG= Options.DEBUG 
+  if DEBUG:
+        oldDiagnostic=opt.diagnostics
+        opt.diagnostics=Options.showLightCurve
   opt.cr    =  opt.planet.sed.sed[opt.offs::opt.osf]
   opt.cr_wl =  opt.planet.sed.wl[opt.offs::opt.osf]      
   if opt.timeline.apply_lc.val ==1:                     
@@ -54,7 +59,11 @@ def run(opt):
   opt.cr_wl_original = copy.deepcopy(opt.cr_wl)
   opt.cr_original = copy.deepcopy(opt.cr)
   opt.lc_original = copy.deepcopy(opt.lc)
-  opt.ldc_original = copy.deepcopy(opt.ldc)
+  opt.ldc_original = copy.deepcopy(opt.ldc) 
+  if DEBUG:
+      if opt.diagnostics:
+              plt.show()
+      opt.diagnostics=oldDiagnostic
 
   return opt        
  

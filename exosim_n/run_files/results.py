@@ -15,6 +15,16 @@ import os
 
 def run(results_file):
     
+    
+    DEBUG= Options.DEBUG
+    results_file='FIXED_NAME.pickle'
+    if DEBUG:
+        if DEBUG:plt.show() 
+        showSignal=Options.showSignal
+        showExposure=Options.showExposure
+
+        showBadPixels=Options.showBadPixels
+        results_file='FIXED_NAME.pickle'
     # exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
     exosim_n_path = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '../..'))
     
@@ -151,15 +161,15 @@ def run(results_file):
 
 
 
-
-            plt.figure('bad pixels %s'%(res_dict['time_tag']))          
-            plt.imshow(res_dict['bad_map'], interpolation='none', aspect='auto')
-            ticks = np.arange(res_dict['bad_map'].shape[1])[0::int(res_dict['bad_map'].shape[1]/10)]  
-            ticklabels =  np.round(res_dict['pixel wavelengths'], 2)[0::int(res_dict['bad_map'].shape[1]/10)]  
-            plt.xticks(ticks=ticks, labels = ticklabels)
-            plt.ylabel('Spatial pixel')
-            plt.xlabel('Wavelength ($\mu m$)')
-            
+            if not DEBUG or (DEBUG and showBadPixels):
+                plt.figure('bad pixels %s'%(res_dict['time_tag']))          
+                plt.imshow(res_dict['bad_map'], interpolation='none', aspect='auto')
+                ticks = np.arange(res_dict['bad_map'].shape[1])[0::int(res_dict['bad_map'].shape[1]/10)]  
+                ticklabels =  np.round(res_dict['pixel wavelengths'], 2)[0::int(res_dict['bad_map'].shape[1]/10)]  
+                plt.xticks(ticks=ticks, labels = ticklabels)
+                plt.ylabel('Spatial pixel')
+                plt.xlabel('Wavelength ($\mu m$)')
+                
             
             plt.figure('example integration image %s'%(res_dict['time_tag']))          
             plt.imshow(res_dict['example_exposure_image'], interpolation='none', aspect='auto')
@@ -222,119 +232,125 @@ def run(results_file):
             
             if 'fracNoT14_mean' in no_dict[key].keys():
                 fracNoT14_mean = no_dict[key]['fracNoT14_mean'][idx]
-    
-            plt.figure('signal %s'%(res_dict['time_tag']))
-            plt.plot(wl,sig_mean, 'o-', color = col, label = noise_type)
-            if res_dict['simulation_realisations'] > 1:    
-                for i in range(sig_stack.shape[0]):
-                    plt.plot(wl,sig_stack[i], ':', color = col, alpha=0.5)           
-            plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
-            plt.ylabel('Signal (e$^-$)')
-            plt.xlabel('Wavelength ($\mu m$)')
-            plt.grid(True)
-     
-            plt.figure('noise %s'%(res_dict['time_tag']))
-            plt.plot(wl,no_mean, 'o-', color = col, label = noise_type)
-            if res_dict['simulation_realisations'] > 1:
-                for i in range(no_stack.shape[0]):
-                    plt.plot(wl,no_stack[i], '.', color = col, alpha=0.5)           
-            plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
-            plt.ylabel('Noise (e$^-$)')
-            plt.xlabel('Wavelength ($\mu m$)')
-            plt.grid(True)
-            
-            if res_dict['simulation_realisations'] > 1:
-                for i in range(no_stack.shape[0]):
-                    plt.plot(wl,no_stack[i], '.', color = col, alpha=0.5)                 
-            
-            if 'fracNoT14_mean' in no_dict[key].keys():
-                plt.figure('fractional noise %s'%(res_dict['time_tag']))
-                plt.plot(wl,fracNoT14_mean, 'o-', color = col, label = noise_type)
-                if res_dict['simulation_realisations'] > 1:
-                    for i in range(fracNoT14_stack.shape[0]):
-                        plt.plot(wl,fracNoT14_stack[i], '.', color = col, alpha=0.5)           
+            if  not DEBUG or (DEBUG and showSignal):
+                plt.figure('signal %s'%(res_dict['time_tag']))
+                plt.plot(wl,sig_mean, 'o-', color = col, label = noise_type)
+                if res_dict['simulation_realisations'] > 1:    
+                    for i in range(sig_stack.shape[0]):
+                        plt.plot(wl,sig_stack[i], ':', color = col, alpha=0.5)           
                 plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
-                plt.ylabel('Fractional noise at T14 (ppm)')
+                plt.ylabel('Signal (e$^-$)')
                 plt.xlabel('Wavelength ($\mu m$)')
                 plt.grid(True)
-                plt.ylim(fracNoT14_mean.min() - fracNoT14_mean.min()*0.2
-                         , fracNoT14_mean.max() + fracNoT14_mean.max()*0.2)
-             
-                            
-                plt.figure('precision %s'%(res_dict['time_tag']))
-                plt.plot(wl,fracNoT14_mean*np.sqrt(2), 'o', color = col, label = noise_type, alpha=0.5)
-                plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
-                plt.ylabel('1$\sigma$ error on transit depth (ppm)')
-                plt.xlabel('Wavelength ($\mu m$)')
-                plt.ylim(fracNoT14_mean.min()*np.sqrt(2) - fracNoT14_mean.min()*np.sqrt(2)*0.2
-                         , fracNoT14_mean.max()*np.sqrt(2) + fracNoT14_mean.max()*np.sqrt(2)*0.2)
-    
-                if len(wl)>1:
-                    r = 4 
-                    
-                    z = np.polyfit(wl, fracNoT14_mean*np.sqrt(2), r)
-                    p= np.poly1d(z)
-                    # yhat = p(wav)
-                    # ybar = sum(p_std)/len(p_std)
-                    # SST = sum((p_std - ybar)**2)
-                    # SSreg = sum((yhat - ybar)**2)
-                    # R2 = SSreg/SST  
-                    y =0
-                    for i in range (0,r+1):
-                        y = y + z[i]*wl**(r-i) 
-                        
-                else:
-                    y = fracNoT14_mean*np.sqrt(2)
-                   
-                    
-                plt.plot(wl, y, '-', color='r', linewidth=2) 
-                plt.grid(True)
-                         
-                cr = res_dict['input_spec']
-                cr_wl = res_dict['input_spec_wl']
+
                 
-                print (cr)
- 
-                idx0 = np.argwhere ((np.array(cr_wl)>=wavlim[0])&(np.array(cr_wl)<=wavlim[1])).T[0]   
-                cr = cr[idx0]
-                cr_wl = cr_wl[idx0]
-  
-                f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
-                rand_spec = np.array(f(wl))
-            
-            
-                for ntransits in [1,10,100]:
-                    plt.figure('sample spectrum for %s transit %s'%(ntransits, res_dict['time_tag']))  
-                    plt.plot(cr_wl,cr, '-', color='r', linewidth=2, label='input spectrum')
-                    for i in range(len(wl)):
-                        rand_spec[i] = np.random.normal(rand_spec[i], y[i]/1e6/np.sqrt(ntransits))
-                    plt.plot(wl, rand_spec, 'o-', color='b', label = 'randomized spectrum')
-                    plt.errorbar(wl, rand_spec, y/1e6/np.sqrt(ntransits), ecolor='b')
-                    plt.legend(loc='best')
-                    plt.ylabel('Contrast ratio')
+                plt.figure('noise %s'%(res_dict['time_tag']))
+
+                plt.plot(wl,no_mean, 'o-', color = col, label = noise_type)
+                if res_dict['simulation_realisations'] > 1:
+                    for i in range(no_stack.shape[0]):
+                        plt.plot(wl,no_stack[i], '.', color = col, alpha=0.5)           
+                plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
+                plt.ylabel('Noise (e$^-$)')
+                plt.xlabel('Wavelength ($\mu m$)')
+                plt.grid(True)
+                #if DEBUG:plt.show()      
+                if res_dict['simulation_realisations'] > 1:
+                    for i in range(no_stack.shape[0]):
+                        plt.plot(wl,no_stack[i], '.', color = col, alpha=0.5)                 
+
+                
+
+                #if DEBUG:plt.show()   
+                if 'fracNoT14_mean' in no_dict[key].keys():
+                    plt.figure('fractional noise %s'%(res_dict['time_tag']))
+                    plt.plot(wl,fracNoT14_mean, 'o-', color = col, label = noise_type)
+                    if res_dict['simulation_realisations'] > 1:
+                        for i in range(fracNoT14_stack.shape[0]):
+                            plt.plot(wl,fracNoT14_stack[i], '.', color = col, alpha=0.5)   
+                                
+                    plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
+                    plt.ylabel('Fractional noise at T14 (ppm)')
                     plt.xlabel('Wavelength ($\mu m$)')
                     plt.grid(True)
+                    if DEBUG:plt.show()      #SHOW 1: Signal + Noise
+                    plt.ylim(fracNoT14_mean.min() - fracNoT14_mean.min()*0.2
+                            , fracNoT14_mean.max() + fracNoT14_mean.max()*0.2)
                 
-       
-
-            plt.figure('bad pixels %s'%(res_dict['time_tag']))          
-            plt.imshow(no_dict[key]['bad_map'], interpolation='none', aspect='auto')
-            ticks = np.arange(no_dict[key]['bad_map'].shape[1])[0::int(no_dict[key]['bad_map'].shape[1]/10)]  
-            ticklabels =  np.round(no_dict[key]['pixel wavelengths'], 2)[0::int(no_dict[key]['bad_map'].shape[1]/10)]  
-            plt.xticks(ticks=ticks, labels = ticklabels)
-            plt.ylabel('Spatial pixel')
-            plt.xlabel('Wavelength ($\mu m$)')
-            
-            plt.figure('example integration image %s'%(res_dict['time_tag']))          
-            plt.imshow(no_dict[key]['example_exposure_image'], interpolation='none', aspect='auto', vmin=0, vmax=no_dict[key]['example_exposure_image'].max(), cmap='jet')
-            ticks = np.arange(no_dict[key]['example_exposure_image'].shape[1])[0::int(no_dict[key]['example_exposure_image'].shape[1]/10)]  
-            ticklabels =  np.round(no_dict[key]['pixel wavelengths'], 2)[0::int(no_dict[key]['example_exposure_image'].shape[1]/10)]  
-            plt.xticks(ticks=ticks, labels = ticklabels)
-            plt.ylabel('Spatial pixel')
-            plt.xlabel('Wavelength ($\mu m$)')           
-            cbar = plt.colorbar() 
-            cbar.set_label('Count (e$^-$)',size=12)
-
+                                
+                    plt.figure('precision %s'%(res_dict['time_tag']))
+                    plt.plot(wl,fracNoT14_mean*np.sqrt(2), 'o', color = col, label = noise_type, alpha=0.5)
+                    plt.legend(loc='best', ncol = 3, borderpad =0.3, fontsize=10)
+                    plt.ylabel('1$\sigma$ error on transit depth (ppm)')
+                    plt.xlabel('Wavelength ($\mu m$)')
+                    plt.ylim(fracNoT14_mean.min()*np.sqrt(2) - fracNoT14_mean.min()*np.sqrt(2)*0.2
+                            , fracNoT14_mean.max()*np.sqrt(2) + fracNoT14_mean.max()*np.sqrt(2)*0.2)
+        
+                    if len(wl)>1:
+                        r = 4 
+                        
+                        z = np.polyfit(wl, fracNoT14_mean*np.sqrt(2), r)
+                        p= np.poly1d(z)
+                        # yhat = p(wav)
+                        # ybar = sum(p_std)/len(p_std)
+                        # SST = sum((p_std - ybar)**2)
+                        # SSreg = sum((yhat - ybar)**2)
+                        # R2 = SSreg/SST  
+                        y =0
+                        for i in range (0,r+1):
+                            y = y + z[i]*wl**(r-i) 
+                            
+                    else:
+                        y = fracNoT14_mean*np.sqrt(2)
+                    
+                        
+                    plt.plot(wl, y, '-', color='r', linewidth=2) 
+                    plt.grid(True)
+                    
+                    cr = res_dict['input_spec']
+                    cr_wl = res_dict['input_spec_wl']
+                    
+                    print (cr)
+    
+                    idx0 = np.argwhere ((np.array(cr_wl)>=wavlim[0])&(np.array(cr_wl)<=wavlim[1])).T[0]   
+                    cr = cr[idx0]
+                    cr_wl = cr_wl[idx0]
+    
+                    f = interpolate.interp1d(cr_wl,cr, bounds_error=False)
+                    rand_spec = np.array(f(wl))
+                
+                
+                    for ntransits in [1,10,100]:
+                        plt.figure('sample spectrum for %s transit %s'%(ntransits, res_dict['time_tag']))  
+                        plt.plot(cr_wl,cr, '-', color='r', linewidth=2, label='input spectrum')
+                        for i in range(len(wl)):
+                            rand_spec[i] = np.random.normal(rand_spec[i], y[i]/1e6/np.sqrt(ntransits))
+                        plt.plot(wl, rand_spec, 'o-', color='b', label = 'randomized spectrum')
+                        plt.errorbar(wl, rand_spec, y/1e6/np.sqrt(ntransits), ecolor='b')
+                        plt.legend(loc='best')
+                        plt.ylabel('Contrast ratio')
+                        plt.xlabel('Wavelength ($\mu m$)')
+                        plt.grid(True)
+                    if DEBUG:plt.show()    #Sample spectrum with different transits
+            if  not DEBUG or  (DEBUG and showBadPixels):
+                plt.figure('bad pixels %s'%(res_dict['time_tag']))          
+                plt.imshow(no_dict[key]['bad_map'], interpolation='none', aspect='auto')
+                ticks = np.arange(no_dict[key]['bad_map'].shape[1])[0::int(no_dict[key]['bad_map'].shape[1]/10)]  
+                ticklabels =  np.round(no_dict[key]['pixel wavelengths'], 2)[0::int(no_dict[key]['bad_map'].shape[1]/10)]  
+                plt.xticks(ticks=ticks, labels = ticklabels)
+                plt.ylabel('Spatial pixel')
+                plt.xlabel('Wavelength ($\mu m$)')
+            if  not DEBUG or  (DEBUG and showExposure):
+                plt.figure('example integration image %s'%(res_dict['time_tag']))          
+                plt.imshow(no_dict[key]['example_exposure_image'], interpolation='none', aspect='auto', vmin=0, vmax=no_dict[key]['example_exposure_image'].max(), cmap='jet')
+                ticks = np.arange(no_dict[key]['example_exposure_image'].shape[1])[0::int(no_dict[key]['example_exposure_image'].shape[1]/10)]  
+                ticklabels =  np.round(no_dict[key]['pixel wavelengths'], 2)[0::int(no_dict[key]['example_exposure_image'].shape[1]/10)]  
+                plt.xticks(ticks=ticks, labels = ticklabels)
+                plt.ylabel('Spatial pixel')
+                plt.xlabel('Wavelength ($\mu m$)')           
+                cbar = plt.colorbar() 
+                cbar.set_label('Count (e$^-$)',size=12)
+                if DEBUG:plt.show()    #SHOW : integration image and bad pixel
 
     elif res_dict['simulation_mode'] == 3 or res_dict['simulation_mode'] == 4:
         no_dict =  res_dict['noise_dic']  
@@ -409,6 +425,7 @@ def run(results_file):
         
 
             if key == 'All noise':
+              if not DEBUG or (DEBUG and showBadPixels): 
                 plt.figure('bad pixels %s'%(res_dict['time_tag']))          
                 plt.imshow(no_dict[key]['bad_map'], interpolation='none', aspect='auto')
                 ticks = np.arange(no_dict[key]['bad_map'].shape[1])[0::int(no_dict[key]['bad_map'].shape[1]/10)]  

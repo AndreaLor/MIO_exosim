@@ -17,11 +17,15 @@ from exosim_n.modules import astroscene, telescope, channel, backgrounds
 from exosim_n.modules import detector, timeline, light_curve, systematics, noise
 from exosim_n.pipeline.run_pipeline import pipeline_stage_1, pipeline_stage_2
 from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot, write_record
+from exosim_n.classes.options import Options
 
-
+import matplotlib.pyplot as plt
 class recipe_2(object):
     def __init__(self, opt):
-        
+        DEBUG= Options.DEBUG
+        if DEBUG:
+            oldDiagnostic=opt.diagnostics
+            opt.diagnostics=Options.showPipeline1
         output_directory = opt.common.output_directory.val
         filename=""
         
@@ -77,7 +81,8 @@ class recipe_2(object):
             exosim_n_msg ("Monte Carlo selected", 1) 
                            
         opt = self.run_exosim_nA(opt)
-                                      
+        
+                                   
         if opt.observation_feasibility ==0:      
            exosim_n_msg ("Observation not feasible...", opt.diagnostics) 
            self.feasibility = 0
@@ -122,7 +127,7 @@ class recipe_2(object):
 #  # split simulation into chunks to permit computation - makes no difference to final results    
 # =============================================================================
                if opt.pipeline.split ==1:
-              
+                  
                    exosim_n_msg('Splitting data series into chunks', opt.diagnostics)
                    # uses same QE grid and jitter timeline but otherwise randomoses noise
                    ndrs_per_round = opt.effective_multiaccum*int(5000/opt.multiaccum)  
@@ -188,6 +193,7 @@ class recipe_2(object):
                    exosim_n_plot('test_from_sim', opt.diagnostics,
                             ydata=bb[opt.effective_multiaccum::opt.effective_multiaccum] )
                    aa = binnedLC_stack.sum(axis=1)
+                  
                    exosim_n_plot('test_from_pipeline', opt.diagnostics,
                                         ydata=aa)                            
 
@@ -213,7 +219,11 @@ class recipe_2(object):
                    exosim_n_plot('testvvv', opt.diagnostics,
                                 ydata=binnedLC_stack.sum(axis=1) )  
                    
-                
+               
+               if DEBUG:
+                         if opt.diagnostics:
+                                 plt.show()
+                         opt.diagnostics=oldDiagnostic 
                opt.pipeline_stage_1.binnedLC = binnedLC_stack     
                opt = self.run_pipeline_stage_2(opt)
                pipeline = opt.pipeline_stage_2

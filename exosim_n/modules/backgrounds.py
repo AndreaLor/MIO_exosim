@@ -15,8 +15,14 @@ import scipy.interpolate
 import scipy.signal
 import copy
 
-def run(opt):
+from exosim_n.classes.options import Options 
+import matplotlib.pyplot as plt
 
+def run(opt):
+      DEBUG= Options.DEBUG
+      if DEBUG:
+        oldDiagnostic=opt.diagnostics
+        opt.diagnostics=Options.showBackground
       exosim_n_msg('Running backgrounds module ...\n ', opt.diagnostics)
       
       opt.zodi, zodi_transmission  = backgrounds_lib.zodical_light(opt)
@@ -82,7 +88,10 @@ def run(opt):
       
       exosim_n_plot('zodi spectrum', opt.diagnostics, xdata = opt.zodi.wl, ydata=opt.zodi.sed)
       exosim_n_plot('emission spectrum', opt.diagnostics, xdata = opt.emission.wl, ydata=opt.emission.sed)   
-
+      if DEBUG:
+           if opt.diagnostics:
+              plt.show()
+           opt.diagnostics=oldDiagnostic
       return opt
       
 

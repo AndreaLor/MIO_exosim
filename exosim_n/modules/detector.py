@@ -9,9 +9,12 @@ from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
 import numpy           as np
 import matplotlib.pyplot as plt
 import copy
- 
+from exosim_n.classes.options import Options
 def run(opt):
-    
+      DEBUG= Options.DEBUG
+      if DEBUG:
+        oldDiagnostic=opt.diagnostics
+        opt.diagnostics=Options.showDetector
       opt.observation_feasibility = 1  # this variable is currently not changed to zero under any circumstances
       opt.psf = instrument_lib.get_psf(opt)
       opt.fp, opt.fp_signal = instrument_lib.get_focal_plane(opt)
@@ -43,7 +46,8 @@ def run(opt):
           for item in ([ax.title, ax.xaxis.label, ax.yaxis.label] +
                  ax.get_xticklabels() + ax.get_yticklabels()):
               item.set_fontsize(15)
-
+          
+      
       opt.fp_original = copy.deepcopy(opt.fp)
       opt.fp_signal_original = copy.deepcopy(opt.fp_signal)  
       opt.x_wav_osr_original = copy.deepcopy(opt.x_wav_osr)
@@ -64,11 +68,17 @@ def run(opt):
           plt.figure('Focal plane pixel count rate')
           plt.plot(wav, fp_1d, 'r-')
           plt.grid()
+
+          if DEBUG:plt.show()
           plt.figure('Final PCE and transmission on subarray')          
           plt.plot(wl, opt.PCE, '-') 
           plt.plot(wl, opt.TotTrans, '--')        
+          if DEBUG:plt.show()
  
- 
-      instrument_lib.sanity_check(opt)
+      instrument_lib.sanity_check(opt)   
+      if DEBUG:
+          if opt.diagnostics:
+              plt.show()
+          opt.diagnostics=oldDiagnostic
  
       return opt

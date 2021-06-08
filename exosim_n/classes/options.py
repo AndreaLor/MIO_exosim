@@ -9,8 +9,7 @@ import numpy as np
 import exosim_n
 from astropy import units as u
 import os
-from   ..  import __path__
-
+from  ..  import __path__
 
 class Entry(object):
   val       = None
@@ -42,12 +41,23 @@ class Entry(object):
 
 class Options(object):
   opt = None
-   
+  DEBUG=True
+  showChannels=0
+  showBackground=0
+  showDetector=0
+  showLightCurve=0
+  showNoise=0
+  showPipeline1=1
+  showPipeline2=1
+  showSignal=1
+  showExposure=1
+  showBadPixels=0
+  showIntermediateAperture=1
   def __init__(self, filename = None, default_path = None):
     
     self.opt = self.parser2()
     
-    
+  
     if filename != '':
     
         self.opt = self.parser(ET.parse(filename).getroot())
@@ -79,7 +89,8 @@ class Options(object):
             # self.calc_metaoptions()
             
             self.calc_metaoption_qe_rms_matrix()
-      
+   
+
   def parser2(self):
     obj = Entry()
     return obj

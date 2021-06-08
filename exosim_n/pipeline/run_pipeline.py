@@ -12,11 +12,19 @@ from exosim_n.pipeline import calibration, jitterdecorr, binning, detrend
 from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
 from astropy import units as u 
 
+from exosim_n.classes.options import Options
+import matplotlib.pyplot as plt
+ 
  
 class pipeline_stage_1():
        
     def __init__(self, opt):
         
+        global DEBUG
+        DEBUG= Options.DEBUG 
+        if DEBUG:
+            oldDiagnostic=opt.diagnostics
+            opt.diagnostics=Options.showPipeline1
         
         self.opt = opt
          
@@ -82,6 +90,10 @@ class pipeline_stage_1():
         else:
             self.extractPhot()
  
+        if DEBUG:
+           #if opt.diagnostics:
+           #  plt.show()
+           opt.diagnostics=oldDiagnostic
  
  
     def loadData(self):
@@ -183,9 +195,12 @@ class pipeline_stage_1():
             for i in ApList:
                 testApFactor = 1.0*i  
                 exosim_n_msg("test ApFactor %s"%(testApFactor), self.opt.diagnostics)
-                self.extractSample = binning.extractSpec(sample, self.opt, self.opt.diff, testApFactor, 2) 
-     
+                self.extractSample = binning.extractSpec(sample, self.opt, self.opt.diff, testApFactor, 2)
                 self.extractSample.applyMask_extract_1D()
+                  
+                self.extractSampleOptimal =binning.extractSpec(sample, self.opt, self.opt.diff, testApFactor, 2)  
+                self.extractSampleOptimal.applyMask_optimal_extract_1D()
+                exosim_n_msg("difference split methods %s"%np.sum(self.extractSampleOptimal.data-self.extractSampleOptimal.data), self.opt.diagnostics) 
                 spectra = self.extractSample.spectra
                 self.extractSample.binSpectra()   
                 binnedLC = self.extractSample.binnedLC   
@@ -215,6 +230,9 @@ class pipeline_stage_1():
             
             AvBest = np.round(np.mean(best),0)
             exosim_n_msg ("average best aperture factor %s"%(AvBest), self.opt.diagnostics)
+            if DEBUG:
+                if Options.showIntermediateAperture:
+                    plt.show()
             self.opt.AvBest = AvBest
             self.ApFactor = AvBest
             self.opt.pipeline.pipeline_ap_factor.val = self.ApFactor
@@ -490,7 +508,10 @@ class pipeline_stage_1():
 class pipeline_stage_2():
        
     def __init__(self, opt):
-        
+        DEBUG= Options.DEBUG 
+        if DEBUG:
+            oldDiagnostic=opt.diagnostics
+            opt.diagnostics=Options.showPipeline2
         self.opt  = opt
         self.binnedWav = opt.pipeline_stage_1.binnedWav
         self.binnedLC = opt.pipeline_stage_1.binnedLC
@@ -510,7 +531,11 @@ class pipeline_stage_2():
             self.fitLC()            
         elif self.opt.timeline.apply_lc.val ==0 :
             self.ootSNR()
-   
+
+        if DEBUG:
+            if opt.diagnostics:
+              plt.show()
+            opt.diagnostics=oldDiagnostic
     def detrend(self):
         self.detrend = detrend.Detrend(self.binnedLC, self.binnedWav, self.opt)   
       

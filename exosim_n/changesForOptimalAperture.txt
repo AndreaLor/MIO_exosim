@@ -1,0 +1,2 @@
+change in parameters file (e.g. exosim_n/input_files/exosim_n_input_params_ex1.txt)
+change in ARIEL xml file (exosim_n/systems/Ariel/ARIEL.xml)

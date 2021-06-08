@@ -12,9 +12,14 @@ import numpy           as np
 from astropy import units as u
 from astropy import constants as const
 import copy
- 
+from exosim_n.classes.options import Options 
+import matplotlib.pyplot as plt
+
 def run(opt):
-    
+      DEBUG= Options.DEBUG
+      if DEBUG:
+        oldDiagnostic=opt.diagnostics
+        opt.diagnostics=Options.showChannels
       exosim_n_msg('channel check0 : %s'%(opt.star.sed.sed.max()), opt.diagnostics)
       tr_ =np.array([1.]*len(opt.x_wav_osr))*u.dimensionless_unscaled
       opt.channel.optical_surface = opt.channel.optical_surface if isinstance(opt.channel.optical_surface, list) else \
@@ -70,7 +75,10 @@ def run(opt):
       exosim_n_plot('star sed check 2.0', opt.diagnostics, 
                    xdata=opt.x_wav_osr, ydata=opt.star.sed.sed , marker='-')
  
-      
+      if DEBUG:
+          if opt.diagnostics:
+              plt.show()
+          opt.diagnostics=oldDiagnostic
       return opt
       
     

@@ -12,10 +12,10 @@ from astropy import units as u
 from datetime import datetime
 import pickle, os
 import numpy as np
-
+from exosim_n.classes.options import Options
 class recipe_1(object):
     def __init__(self, opt):
-        
+        DEBUG=Options.DEBUG
         output_directory = opt.common.output_directory.val
         filename =""
         
@@ -69,7 +69,7 @@ class recipe_1(object):
         opt.diff = nb_dict['diff'][noise_type]      
         opt.noise_tag = nb_dict['noise_tag'][noise_type]
         opt.color = nb_dict['color'][noise_type]
-                        
+                      
         self.noise_dict[nb_dict['noise_tag'][noise_type]] ={}
         
         exosim_n_msg ("Noise type: %s"%(nb_dict['noise_tag'][noise_type]), 1) 
@@ -173,14 +173,17 @@ class recipe_1(object):
                         txt_file = '%s.txt'%(filename)
                         os.remove(txt_file)             
                         filename = '%s/OOT_SNR_%s_%s.pickle'%(output_directory, opt.lab, time_tag)
+                        filename = '%s/FIXED_NAME.pickle'%(output_directory) 
+                        
                         with open(filename, 'wb') as handle:
                             pickle.dump(self.results_dict , handle, protocol=pickle.HIGHEST_PROTOCOL)
                         
                         exosim_n_msg('Results in %s'%(filename), 1)
-                        self.filename = 'OOT_SNR_%s_%s.pickle'%(opt.lab, time_tag)
+                        #self.filename = 'OOT_SNR_%s_%s.pickle'%(opt.lab, time_tag)
+                        self.filename = 'FIXED_NAME.pickle'
                         write_record(opt, output_directory, self.filename, opt.params_file_path)
                                 
-                
+                     
                 elif opt.simulation.sim_output_type.val == 2:
                      
                     output.run(opt)

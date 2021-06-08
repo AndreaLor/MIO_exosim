@@ -9,10 +9,15 @@ import numpy as np
 from exosim_n.lib.exosim_n_lib import exosim_n_msg, exosim_n_plot
 from exosim_n.lib import exosim_n_lib, noise_lib, signal_lib 
 from astropy import units as u
+from exosim_n.classes.options import Options
 import copy
 
 def run(opt):
- 
+  DEBUG= Options.DEBUG
+  if DEBUG:
+        oldDiagnostic=opt.diagnostics
+        opt.diagnostics=Options.showNoise
+
   opt.fp =   copy.deepcopy(opt.fp_original) # needed to reuse if cropped fp is used and monte carlo mode used
   opt.fp_signal =  copy.deepcopy(opt.fp_signal_original) # " 
   opt.zodi.sed =  copy.deepcopy(opt.zodi_sed_original) # "
@@ -36,7 +41,6 @@ def run(opt):
   import matplotlib.pyplot as plt
   plt.figure(333)
   plt.imshow(opt.signal[...,1].value)
-   
   opt = signal_lib.apply_lc(opt)
   opt = signal_lib.apply_systematic(opt)
   
@@ -50,7 +54,6 @@ def run(opt):
   plt.plot(opt.x_wav_osr[1::3], opt.signal[...,1].sum(axis=0), 'b-')
   plt.figure('signal ')
   plt.imshow(opt.signal[...,1].value)
-
   opt = signal_lib.apply_poisson_noise(opt)
   
   print ('non-jitter noise',opt.combined_noise.max()) 
@@ -60,7 +63,7 @@ def run(opt):
   n = n.std(axis=1)
   plt.figure('noise pixel level')
   plt.plot(opt.x_wav_osr[1::3], n, 'b-')
-
+  plt.legend()
   print ('non-jitter noise',opt.combined_noise.max())
   n= opt.combined_noise.sum(axis=0)
   n = n.std(axis=1)
@@ -102,6 +105,12 @@ def run(opt):
                image=True,  image_data = opt.data[...,0])
   exosim_n_plot('test - check NDR1', opt.diagnostics,
                image=True,  image_data = opt.data[...,1])
+  if DEBUG:
+      if opt.diagnostics:
+        plt.show()
+      else:
+        plt.close(fig='all')
+      opt.diagnostics=oldDiagnostic
   
   return opt
    

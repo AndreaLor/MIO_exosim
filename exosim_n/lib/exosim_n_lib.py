@@ -10,7 +10,7 @@ import sys, os
 import matplotlib.pyplot as plt
 import pandas as pd
 import pickle
-
+from exosim_n.classes.options import Options
 
 def exosim_n_error(error_msg):
     sys.stderr.write("Error code: {:s}\n".format(error_msg))
@@ -26,6 +26,7 @@ def exosim_n_plot(figure_name, show, image=False, xlabel=None,
                  grid=False, label=None):
   if hasattr(image_data, "unit"): # fid for astropy image issue with units
       image_data = image_data.value
+  DEBUG= Options.DEBUG    
   if show == 1:
       if image == True:
           plt.figure(figure_name)
@@ -58,7 +59,7 @@ def exosim_n_plot(figure_name, show, image=False, xlabel=None,
               plt.grid()
           if label is not None:
               plt.legend(loc='best')
-
+      #if DEBUG:plt.show()
   
   
 def calc_logg(m,r):

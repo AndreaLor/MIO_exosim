@@ -1,7 +1,8 @@
 from exosim_n.classes.options import Options
 from exosim_n.classes.params import Params
 
-from exosim_n.generate.gen_planet_xml_file import make_planet_xml_file
+#from exosim_n.generate.gen_planet_xml_file import make_planet_xml_file
+from exosim_n.generate.gen_planet_xml_file_p2 import make_planet_xml_file
 from exosim_n.run_files.recipe_1 import recipe_1
 from exosim_n.run_files.recipe_2 import recipe_2
 from exosim_n.run_files.recipe_3 import recipe_3
@@ -26,7 +27,7 @@ import os
 plt.style.use('classic')
 
 def run(params_file):
-  
+  DEBUG=Options.DEBUG
   exosim_n_msg('exosim_n is running!\n', 1) 
   exosim_n_msg('User-defined input parameter file: %s\n  '%(params_file), 1)  
   # exosim_n_path =  os.path.dirname((os.path.dirname(exosim_n.__file__)))
@@ -141,6 +142,6 @@ def run(params_file):
 if __name__ == "__main__":     
     
      run('exosim_n_input_params_ex1.txt')
-     
+     #run('exosim_n_input_params_ex3_test.txt')
  
     
